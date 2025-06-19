@@ -1,0 +1,23 @@
+{
+  "name": "repeatly",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "nodemon --watch packages/common --watch packages/api --exec ts-node packages/api/src/index.ts",
+    "dev:scheduler": "nodemon --watch packages/common --watch packages/scheduler --exec ts-node packages/scheduler/src/index.ts",
+    "dev:worker": "nodemon --watch packages/common --watch packages/worker --exec ts-node packages/worker/src/index.ts",
+    "dev": "concurrently \"npm:dev:api\" \"npm:dev:scheduler\" \"npm:dev:worker\"",
+    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "nodemon": "^3.0.1",
+    "ts-node": "^10.9.2",
+    "eslint": "^8.57.0",
+    "@typescript-eslint/eslint-plugin": "^7.5.0",
+    "@typescript-eslint/parser": "^7.5.0"
+  }
+}
