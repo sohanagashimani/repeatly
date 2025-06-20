@@ -9,7 +9,7 @@ import "./index.css";
 
 function App() {
   return (
-    <div className="text-4xl font-bold text-red-500">
+    <div>
       <ConfigProvider>
         <AuthProvider>
           <Router>

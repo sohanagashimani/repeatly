@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { message } from "antd";
 import { useAuth } from "./useAuth";
+import apiHelper from "../lib/apiHelper";
 import { API_KEY_LIMITS, API_KEY_MESSAGES } from "../constants/apiKeys";
 
 interface ApiKey {
@@ -23,22 +24,13 @@ export const useApiKeys = () => {
 
     setLoading(true);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/v1/keys", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const data = await apiHelper({
+        slug: "keys",
+        method: "GET",
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setApiKeys(data.apiKeys || []);
-      } else {
-        const errorData = await response.json();
-        message.error(errorData.error || "Failed to fetch API keys");
-      }
-    } catch (error) {
-      message.error("Failed to fetch API keys");
+      setApiKeys(data.apiKeys || []);
+    } catch (error: any) {
+      message.error(error.message || "Failed to fetch API keys");
     } finally {
       setLoading(false);
     }
@@ -62,37 +54,24 @@ export const useApiKeys = () => {
 
     setLoading(true);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch("/api/v1/keys", {
+      const data = await apiHelper({
+        slug: "keys",
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+        data: {
           displayName: displayName.trim(),
-        }),
+        },
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.status === "creating") {
-          message.success(
-            "API key creation started! It will be ready shortly."
-          );
-          fetchApiKeys();
-          return true;
-        } else {
-          fetchApiKeys();
-          return data.key; // Return the actual key if created immediately
-        }
+      if (data.status === "creating") {
+        message.success("API key creation started! It will be ready shortly.");
+        fetchApiKeys();
+        return true;
       } else {
-        const errorData = await response.json();
-        message.error(errorData.error || "Failed to generate API key");
-        return false;
+        fetchApiKeys();
+        return data.key; // Return the actual key if created immediately
       }
-    } catch (error) {
-      message.error("Failed to generate API key");
+    } catch (error: unknown) {
+      message.error((error as Error).message || "Failed to generate API key");
       return false;
     } finally {
       setLoading(false);
@@ -104,31 +83,22 @@ export const useApiKeys = () => {
 
     setCheckingKeyId(keyId);
     try {
-      const token = await user.getIdToken();
-      const response = await fetch(`/api/v1/keys/${keyId}/status`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const data = await apiHelper({
+        slug: `keys/${keyId}/status`,
+        method: "GET",
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data.status === "completed" && data.key) {
-          fetchApiKeys();
-          return data.key;
-        } else {
-          message.info(
-            "API key is still being created. Please try again in a moment."
-          );
-          return null;
-        }
+      if (data.status === "completed" && data.key) {
+        fetchApiKeys();
+        return data.key;
       } else {
-        const errorData = await response.json();
-        message.error(errorData.error || "Failed to check key status");
+        message.info(
+          "API key is still being created. Please try again in a moment."
+        );
         return null;
       }
-    } catch (error) {
-      message.error("Failed to check key status");
+    } catch (error: any) {
+      message.error(error.message || "Failed to check key status");
       return null;
     } finally {
       setCheckingKeyId(null);
@@ -139,24 +109,16 @@ export const useApiKeys = () => {
     if (!user) return false;
 
     try {
-      const token = await user.getIdToken();
-      const response = await fetch(`/api/v1/keys/${keyId}`, {
+      await apiHelper({
+        slug: `keys/${keyId}`,
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
 
-      if (response.ok) {
-        message.success("API key revoked from Google Cloud successfully!");
-        fetchApiKeys();
-        return true;
-      } else {
-        message.error("Failed to revoke API key");
-        return false;
-      }
-    } catch (error) {
-      message.error("Failed to revoke API key");
+      message.success("API key revoked from Google Cloud successfully!");
+      fetchApiKeys();
+      return true;
+    } catch (error: any) {
+      message.error(error.message || "Failed to revoke API key");
       return false;
     }
   };

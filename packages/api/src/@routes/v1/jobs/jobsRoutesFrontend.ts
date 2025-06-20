@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { validator, gatewayAuthMiddleware } from "../../../@middlewares";
+import { validator, authMiddleware } from "../../../@middlewares";
 import { addJob } from "./controllers/addJob.controller";
 import { getJobs } from "./controllers/getJobs.controller";
 import { getJob } from "./controllers/getJob.controller";
@@ -10,8 +10,8 @@ import updateJobSchema from "./schemas/updateJobSchema.schema";
 
 const router = Router();
 
-// Apply gateway auth middleware for API Gateway requests
-router.use(gatewayAuthMiddleware);
+// Apply auth middleware for frontend requests
+router.use(authMiddleware);
 
 // List all jobs
 router.get("/getJobs", getJobs);

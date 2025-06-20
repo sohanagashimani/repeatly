@@ -30,7 +30,6 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
             setUserCreated(true);
           }
         } catch (error) {
-          console.error("Error creating user in backend:", error);
           // If it's just that user already exists, treat as success
           setUserCreated(true);
         }
@@ -63,7 +62,7 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
             }
           }
         } catch (error) {
-          console.error("Error checking email verification:", error);
+          message.error("Error checking email verification.");
         }
       }, 3000);
     }

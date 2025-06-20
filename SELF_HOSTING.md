@@ -53,6 +53,12 @@ NODE_ENV=production
 REDIS_HOST=localhost
 REDIS_PORT=6379
 REDIS_PASSWORD=
+REDIS_INSIGHT_PORT=8001
+
+# PostgreSQL Configuration (for Docker Compose)
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+POSTGRES_DB=repeatly
 
 # Firebase Configuration (if different from service account)
 FIREBASE_PROJECT_ID="your-firebase-project-id"
