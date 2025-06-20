@@ -9,15 +9,40 @@
     "dev:api": "nodemon --watch packages/common --watch packages/api --exec ts-node packages/api/src/index.ts",
     "dev:scheduler": "nodemon --watch packages/common --watch packages/scheduler --exec ts-node packages/scheduler/src/index.ts",
     "dev:worker": "nodemon --watch packages/common --watch packages/worker --exec ts-node packages/worker/src/index.ts",
-    "dev": "concurrently \"npm:dev:api\" \"npm:dev:scheduler\" \"npm:dev:worker\"",
-    "lint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0"
+    "dev:frontend": "cd packages/frontend && npm run dev",
+    "dev": "concurrently \"npm:dev:api\" \"npm:dev:scheduler\" \"npm:dev:worker\" \"npm:dev:frontend\"",
+    "lint": "eslint packages/api packages/common packages/scheduler packages/worker --ext .ts --max-warnings=0 && eslint packages/frontend --ext .ts,.tsx --max-warnings=0",
+    "lint:fix": "eslint packages/api packages/common packages/scheduler packages/worker --ext .ts --fix && eslint packages/frontend --ext .ts,.tsx --fix",
+    "lint:api": "eslint packages/api --ext .ts --max-warnings=0",
+    "lint:api:fix": "eslint packages/api --ext .ts --fix",
+    "lint:common": "eslint packages/common --ext .ts --max-warnings=0",
+    "lint:common:fix": "eslint packages/common --ext .ts --fix",
+    "lint:scheduler": "eslint packages/scheduler --ext .ts --max-warnings=0",
+    "lint:scheduler:fix": "eslint packages/scheduler --ext .ts --fix",
+    "lint:worker": "eslint packages/worker --ext .ts --max-warnings=0",
+    "lint:worker:fix": "eslint packages/worker --ext .ts --fix",
+    "lint:frontend": "eslint packages/frontend --ext .ts,.tsx --max-warnings=0",
+    "lint:frontend:fix": "eslint packages/frontend --ext .ts,.tsx --fix",
+    "infra": "docker-compose up -d"
   },
   "devDependencies": {
+    "@types/node": "^24.0.3",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^7.4.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-prettier": "^5.5.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "nodemon": "^3.0.1",
-    "ts-node": "^10.9.2",
-    "eslint": "^8.57.0",
-    "@typescript-eslint/eslint-plugin": "^7.5.0",
-    "@typescript-eslint/parser": "^7.5.0"
+    "prettier": "^3.5.3",
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "dotenv": "^16.5.0"
   }
 }

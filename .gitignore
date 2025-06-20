@@ -1,2 +1,7 @@
 node_modules
 .env
+.cursorrules
+PROGRESS.md
+PRD.md
+openapi.yaml
+rules.mdc

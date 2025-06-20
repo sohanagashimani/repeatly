@@ -1,16 +1,8 @@
-import express from "express";
+import { config } from "dotenv";
 
-const app = express();
+config();
 
-app.use(express.json());
+// Import custom types
+import "./@types";
 
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok" });
-});
-
-// TODO: Add job CRUD endpoints
-
-const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
-app.listen(PORT, () => {
-  console.log(`API server listening on port ${PORT}`);
-});
+import "./createLocalServer";

@@ -1,7 +1,15 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "typeRoots": ["../../node_modules/@types", "./src/@types"],
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   },
-  "include": ["src"]
+  "include": ["src/**/*"],
+  "exclude": ["dist", "node_modules"],
+  "ts-node": {
+    "files": true
+  }
 }

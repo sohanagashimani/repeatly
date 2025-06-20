@@ -5,7 +5,9 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -b",
-    "dev": "nodemon --watch ../../packages/common --watch ./src --exec ts-node src/index.ts"
+    "dev": "nodemon --watch ../../packages/common --watch ./src --exec ts-node src/index.ts",
+    "lint": "cd ../.. && npm run lint:worker",
+    "lint:fix": "cd ../.. && npm run lint:worker:fix"
   },
   "dependencies": {
     "bullmq": "^4.12.2",
