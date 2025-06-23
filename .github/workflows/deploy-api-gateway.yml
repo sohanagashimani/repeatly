@@ -38,13 +38,10 @@ jobs:
       - name: Install API dependencies
         run: cd packages/api && npm install
 
-      - name: Setup Google Credentials
-        run: |
-          echo "${{secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY}}" | base64 -d > /tmp/gcp-key.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json" >> $GITHUB_ENV
-
       - id: "auth"
         uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY }}
 
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
