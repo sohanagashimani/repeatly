@@ -8,6 +8,7 @@ env:
   API_NAME: repeatly-api
   API_GATEWAY_HOST: repeatly-api-0jqlghrn8mcd8.apigateway.resounding-age-438010-g3.cloud.goog
   BACKEND_ADDRESS: https://your-backend-url.com # Update with your actual backend URL
+  GOOGLE_APPLICATION_CREDENTIALS: ${{secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY}}
 
 on:
   workflow_dispatch:
@@ -33,10 +34,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version-file: ".nvmrc"
-          cache: "npm"
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Install API dependencies
+        run: cd packages/api && npm install
 
       - id: "auth"
         uses: "google-github-actions/auth@v2"
