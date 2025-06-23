@@ -41,7 +41,7 @@ jobs:
       - id: "auth"
         uses: "google-github-actions/auth@v2"
         with:
-          service_account: ${{env.WIF_SA_EMAIL}}
+          credentials_json: ${{secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY}}
 
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
