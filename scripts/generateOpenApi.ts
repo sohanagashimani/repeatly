@@ -1,9 +1,13 @@
+import { config } from "dotenv";
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
-import baseConfig from "./config/baseConfig";
-import { generateApiSpecPaths } from "./helpers";
-import { jobRoutes } from "./routes/jobRoutes";
+// Load environment variables from root directory
+config({ path: resolve(__dirname, "../.env") });
+
+import baseConfig from "./openapi/config/baseConfig";
+import { generateApiSpecPaths } from "./openapi/helpers";
+import { jobRoutes } from "./openapi/routes/jobRoutes";
 
 const apiVersion = "v1";
 
@@ -19,8 +23,8 @@ const v1Paths = generateApiSpecPaths({
 // Combine base config with generated paths
 const apiSpec = { ...baseConfig, paths: v1Paths };
 
-// Write to file
-const outputPath = resolve(__dirname, "../../../../open-api.json");
+// Write to file - output to root directory
+const outputPath = resolve(__dirname, "../open-api.json");
 writeFileSync(outputPath, JSON.stringify(apiSpec, null, 2));
 
 console.log("✅ OpenAPI specification generated at:", outputPath);

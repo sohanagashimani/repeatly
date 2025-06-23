@@ -36,6 +36,7 @@
     "build:worker": "cd packages/worker && npm run build",
     "build:frontend": "cd packages/frontend && npm run build",
     "build:all": "npm run build:database && npm run build:api && npm run build:scheduler && npm run build:worker && npm run build:frontend",
+    "generate:openapi": "cd scripts && npm run generate:openapi",
     "docker:build:database": "cd packages/database && docker build -t repeatly-database .",
     "docker:build:api": "cd packages/api && docker build -t repeatly-api .",
     "docker:build:scheduler": "cd packages/scheduler && docker build -t repeatly-scheduler .",

@@ -7,8 +7,7 @@
     "build": "tsc -b",
     "dev": "nodemon --watch ./src --exec ts-node src/index.ts",
     "lint": "cd ../.. && npm run lint:api",
-    "lint:fix": "cd ../.. && npm run lint:api:fix",
-    "generate:openapi": "npx ts-node scripts/generateOpenApi.ts"
+    "lint:fix": "cd ../.. && npm run lint:api:fix"
   },
   "dependencies": {
     "@repeatly/database": "^1.0.0",

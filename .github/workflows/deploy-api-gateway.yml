@@ -35,8 +35,8 @@ jobs:
         with:
           node-version-file: ".nvmrc"
 
-      - name: Install API dependencies
-        run: cd packages/api && npm install
+      - name: Install script dependencies
+        run: cd scripts && npm install
 
       - id: "auth"
         uses: "google-github-actions/auth@v2"
@@ -58,7 +58,7 @@ jobs:
           echo "API_GATEWAY_BACKEND_ADDRESS=${{env.BACKEND_ADDRESS}}" >> $GITHUB_ENV
 
       - name: Generate OpenAPI Specification
-        run: cd packages/api && npm run generate:openapi
+        run: cd scripts && npm run generate:openapi
 
       - name: Upload API Spec to API Gateway
         run: |

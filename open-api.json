@@ -17,9 +17,7 @@
       "in": "header"
     }
   },
-  "x-google-backend": {
-    "address": "http://localhost:3003"
-  },
+  "x-google-backend": {},
   "x-google-management": {
     "metrics": [
       {

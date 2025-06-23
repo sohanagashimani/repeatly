@@ -5,7 +5,7 @@ export default {
     title: "Repeatly API",
     description: "Cron-as-a-Service API for scheduling and managing HTTP jobs",
   },
-  host: process.env.API_GATEWAY_HOST, // Update with actual gateway host
+  host: process.env.API_GATEWAY_HOST,
   basePath: "/",
   schemes: ["https"],
   securityDefinitions: {
@@ -16,7 +16,7 @@ export default {
     },
   },
   "x-google-backend": {
-    address: process.env.API_GATEWAY_BACKEND_ADDRESS || "http://localhost:3003",
+    address: process.env.API_GATEWAY_BACKEND_ADDRESS,
   },
   "x-google-management": {
     metrics: [
