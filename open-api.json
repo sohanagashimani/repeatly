@@ -1,0 +1,503 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Repeatly API",
+    "description": "Cron-as-a-Service API for scheduling and managing HTTP jobs"
+  },
+  "host": "repeatly-api-0jqlghrn8mcd8.apigateway.resounding-age-438010-g3.cloud.goog",
+  "basePath": "/",
+  "schemes": ["https"],
+  "securityDefinitions": {
+    "api_key": {
+      "type": "apiKey",
+      "name": "x-api-key",
+      "in": "header"
+    }
+  },
+  "x-google-backend": {
+    "address": "http://localhost:3003"
+  },
+  "x-google-management": {
+    "metrics": [
+      {
+        "name": "requests",
+        "displayName": "Repeatly API Quota",
+        "valueType": "INT64",
+        "metricKind": "DELTA"
+      }
+    ],
+    "quota": {
+      "limits": [
+        {
+          "name": "requests-limit",
+          "metric": "requests",
+          "unit": "1/min/{project}",
+          "values": {
+            "STANDARD": 1000
+          }
+        }
+      ]
+    }
+  },
+  "paths": {
+    "/v1/jobs/getJobs": {
+      "get": {
+        "operationId": "get-jobs-getJobs",
+        "parameters": [],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "x-google-quota": {
+          "metricCosts": {
+            "requests": 1
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "options-jobs-getJobs",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/v1/jobs/getJob/{id}": {
+      "get": {
+        "operationId": "get-jobs-getJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "x-google-quota": {
+          "metricCosts": {
+            "requests": 1
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "options-jobs-getJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/v1/jobs/addJob": {
+      "post": {
+        "operationId": "post-jobs-addJob",
+        "parameters": [],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "x-google-quota": {
+          "metricCosts": {
+            "requests": 1
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "options-jobs-addJob",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/v1/jobs/updateJob/{id}": {
+      "put": {
+        "operationId": "put-jobs-updateJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "x-google-quota": {
+          "metricCosts": {
+            "requests": 1
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "options-jobs-updateJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      },
+      "patch": {
+        "operationId": "patch-jobs-updateJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "x-google-quota": {
+          "metricCosts": {
+            "requests": 1
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "/v1/jobs/deleteJob/{id}": {
+      "delete": {
+        "operationId": "delete-jobs-deleteJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "x-google-quota": {
+          "metricCosts": {
+            "requests": 1
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "options-jobs-deleteJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    },
+    "/v1/jobs/triggerJob/{id}": {
+      "post": {
+        "operationId": "post-jobs-triggerJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "security": [
+          {
+            "api_key": []
+          }
+        ],
+        "x-google-quota": {
+          "metricCosts": {
+            "requests": 1
+          }
+        },
+        "produces": ["application/json"],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "type": "object"
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      },
+      "options": {
+        "operationId": "options-jobs-triggerJob-:id",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No content"
+          }
+        }
+      }
+    }
+  }
+}

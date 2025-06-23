@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../../prisma";
 import { JobSchedulingService } from "../../../../services/jobSchedulingService";
-import type { UpdateJobSchemaType } from "../schemas/updateJobSchema.schema";
 
 export const updateJob = async (
   req: Request,
@@ -12,14 +11,9 @@ export const updateJob = async (
     const { id } = req.params;
     const userId = req.userId!;
 
-    // Get the request method to determine if it's a full or partial update
-    const isPartialUpdate = req.method === "PATCH";
-
+    // Verify job exists and belongs to user
     const existingJob = await prisma.job.findFirst({
-      where: {
-        id,
-        userId,
-      },
+      where: { id, userId },
     });
 
     if (!existingJob) {
@@ -27,42 +21,43 @@ export const updateJob = async (
       return;
     }
 
-    const jobSchedulingService = new JobSchedulingService(prisma);
+    // Build update data from provided fields
+    const { name, cron, url, method, headers, body, enabled, timezone } =
+      req.body;
+    const updateData = Object.fromEntries(
+      Object.entries({
+        name,
+        cron,
+        url,
+        method,
+        headers,
+        body,
+        enabled,
+        timezone,
+      }).filter(([_, value]) => value !== undefined)
+    );
 
-    // For partial updates, only update provided fields
-    // For full updates (PUT), update all fields
-    const updateData: any = {};
-
-    if (req.body.name !== undefined) updateData.name = req.body.name;
-    if (req.body.cron !== undefined) updateData.cron = req.body.cron;
-    if (req.body.url !== undefined) updateData.url = req.body.url;
-    if (req.body.method !== undefined) updateData.method = req.body.method;
-    if (req.body.headers !== undefined) updateData.headers = req.body.headers;
-    if (req.body.body !== undefined) updateData.body = req.body.body;
-    if (req.body.enabled !== undefined) updateData.enabled = req.body.enabled;
-    if (req.body.timezone !== undefined)
-      updateData.timezone = req.body.timezone;
-
-    // Check if cron or timezone changed (requiring rescheduling)
-    const cronChanged = updateData.cron && updateData.cron !== existingJob.cron;
-    const timezoneChanged =
-      updateData.timezone && updateData.timezone !== existingJob.timezone;
+    // Detect changes that require rescheduling
+    const cronChanged = cron && cron !== existingJob.cron;
+    const timezoneChanged = timezone && timezone !== existingJob.timezone;
     const enabledChanged =
-      updateData.enabled !== undefined &&
-      updateData.enabled !== existingJob.enabled;
+      enabled !== undefined && enabled !== existingJob.enabled;
 
+    // Update the job
     const job = await prisma.job.update({
       where: { id },
       data: updateData,
     });
 
     // Handle scheduling changes
+    const jobSchedulingService = new JobSchedulingService(prisma);
+
     if (cronChanged || timezoneChanged) {
       // Reschedule with new cron/timezone
       await jobSchedulingService.rescheduleJob(job.id, job.cron, job.timezone);
     } else if (enabledChanged) {
       if (job.enabled) {
-        // Job was enabled - schedule runs if none exist
+        // Job enabled - ensure it has scheduled runs
         const nextRun = await jobSchedulingService.getNextScheduledRun(job.id);
         if (!nextRun) {
           await jobSchedulingService.scheduleMultipleRuns(
@@ -73,12 +68,12 @@ export const updateJob = async (
           );
         }
       } else {
-        // Job was disabled - cancel future runs
+        // Job disabled - cancel future runs
         await jobSchedulingService.cancelScheduledRuns(job.id, new Date());
       }
     }
 
-    // Get the next scheduled run to include in response
+    // Get next scheduled run for response
     const nextScheduledRun = await jobSchedulingService.getNextScheduledRun(
       job.id
     );
