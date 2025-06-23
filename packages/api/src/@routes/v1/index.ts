@@ -4,6 +4,7 @@ import jobsRoutesFrontend from "./jobs/jobsRoutesFrontend"; // Frontend routes
 import { usersRoutes } from "./users/usersRoutes";
 import { keysRoutes } from "./keys/keysRoutes"; // Gateway routes
 import { keysRoutesFrontend } from "./keys/keysRoutesFrontend"; // Frontend routes
+import { gatewayAuthMiddleware } from "../../@middlewares";
 
 const router = Router();
 
@@ -13,7 +14,7 @@ router.use("/users", usersRoutes);
 router.use("/keys", keysRoutesFrontend);
 
 // Gateway routes (authenticated via API keys)
-router.use("/gateway/jobs", jobsRoutes);
+router.use("/gateway/jobs", gatewayAuthMiddleware, jobsRoutes);
 router.use("/gateway/keys", keysRoutes);
 
 export { router as v1Router };

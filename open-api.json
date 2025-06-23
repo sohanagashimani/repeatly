@@ -7,7 +7,9 @@
   },
   "host": "repeatly-api-0jqlghrn8mcd8.apigateway.resounding-age-438010-g3.cloud.goog",
   "basePath": "/",
-  "schemes": ["https"],
+  "schemes": [
+    "https"
+  ],
   "securityDefinitions": {
     "api_key": {
       "type": "apiKey",
@@ -55,7 +57,9 @@
             "requests": 1
           }
         },
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -120,7 +124,9 @@
             "requests": 1
           }
         },
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -185,7 +191,9 @@
             "requests": 1
           }
         },
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -250,7 +258,9 @@
             "requests": 1
           }
         },
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -320,7 +330,9 @@
             "requests": 1
           }
         },
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -376,7 +388,9 @@
             "requests": 1
           }
         },
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
@@ -448,7 +462,9 @@
             "requests": 1
           }
         },
-        "produces": ["application/json"],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "Successful response",
