@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../../../prisma";
+import { JobSchedulingService } from "../../../../services/jobSchedulingService";
 
 export const getJob = async (
   req: Request,
@@ -24,7 +23,25 @@ export const getJob = async (
       return;
     }
 
-    res.status(200).json(job);
+    const jobSchedulingService = new JobSchedulingService(prisma);
+
+    // Get the next scheduled run
+    const nextScheduledRun = await jobSchedulingService.getNextScheduledRun(
+      job.id
+    );
+
+    const lastExecution = await jobSchedulingService.getLastExecution(job.id);
+
+    res.status(200).json({
+      ...job,
+      nextRun: nextScheduledRun?.scheduledAt || null,
+      nextScheduledJobId: nextScheduledRun?.scheduledJobId || null,
+      lastRun: lastExecution
+        ? lastExecution.completedAt || lastExecution.startedAt
+        : null,
+      lastExecutionStatus: lastExecution?.status || null,
+      lastExecutionId: lastExecution?.executionId || null,
+    });
   } catch (error) {
     next(error);
   }

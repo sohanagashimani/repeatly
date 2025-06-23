@@ -19,7 +19,7 @@
     "titleBar.inactiveForeground": "#e7e7e799"
   },
   "peacock.color": "#1857a4",
-  "cSpell.words": ["Popconfirm", "Repeatly"],
+  "cSpell.words": ["bullmq", "Popconfirm", "Repeatly"],
   "eslint.debug": true,
   "eslint.trace.server": "verbose",
   "eslint.workingDirectories": [
@@ -38,9 +38,5 @@
     "overrideConfigFile": "./.eslintrc.json"
   },
   "eslint.useESLintClass": true,
-  "eslint.experimental.useFlatConfig": false,
-  "eslint.codeActionsOnSave.mode": "all",
-  "eslint.format.enable": true,
-  "eslint.lintTask.enable": true,
-  "typescript.preferences.useAliasesForRenames": false
+  "eslint.codeActionsOnSave.mode": "all"
 }

@@ -1,5 +1,5 @@
 import * as yup from "yup";
-import { isValidCron } from "cron-validator";
+import * as cronValidator from "cron-validator";
 
 const addJobSchema = yup.object({
   body: yup.object({
@@ -9,7 +9,7 @@ const addJobSchema = yup.object({
       .required("Cron expression is required")
       .test("is-valid-cron", "Invalid cron expression", value => {
         if (!value) return false;
-        return isValidCron(value);
+        return cronValidator.isValidCron(value);
       }),
     url: yup.string().url("Invalid URL").required("URL is required"),
     method: yup
@@ -18,6 +18,8 @@ const addJobSchema = yup.object({
       .required("HTTP method is required"),
     headers: yup.object().optional(),
     body: yup.mixed().optional(),
+    timezone: yup.string().optional().default("UTC"),
+    enabled: yup.boolean().optional().default(true),
   }),
 });
 

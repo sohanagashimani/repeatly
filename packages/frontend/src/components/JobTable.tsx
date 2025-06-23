@@ -1,12 +1,35 @@
-import { Button, Table, Tag, Popconfirm, Typography } from "antd";
+import {
+  Button,
+  Table,
+  Tag,
+  Popconfirm,
+  Typography,
+  Switch,
+  Tooltip,
+  message,
+} from "antd";
 import {
   EditOutlined,
   DeleteOutlined,
   PlayCircleOutlined,
   ClockCircleOutlined,
+  CopyOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { Job, PaginationInfo } from "../hooks/useJobs";
+
+// Timezone handling:
+// - Last Run: Shows in job's configured timezone (converted from UTC database timestamp)
+// - Next Run: Shows in job's configured timezone (when job will actually execute)
+// - Created: Shows in user's browser timezone (for user reference)
+// - When job timezone is updated: Only affects future scheduling, past executions remain in their original timezone context
+
+dayjs.extend(relativeTime);
+dayjs.extend(timezone);
+dayjs.extend(utc);
 
 const { Text } = Typography;
 
@@ -15,8 +38,12 @@ interface JobTableProps {
   pagination: PaginationInfo;
   loading: boolean;
   updatingJobId: string | null;
+  triggeringJobId: string | null;
+  showLocalTimezone: boolean;
   onEdit: (job: Job) => void;
   onDelete: (jobId: string) => void;
+  onTrigger: (jobId: string) => void;
+  onToggleStatus: (jobId: string, enabled: boolean) => void;
   onPageChange: (page: number, pageSize?: number) => void;
 }
 
@@ -25,8 +52,12 @@ export const JobTable: React.FC<JobTableProps> = ({
   pagination,
   loading,
   updatingJobId,
+  triggeringJobId,
+  showLocalTimezone,
   onEdit,
   onDelete,
+  onTrigger,
+  onToggleStatus,
   onPageChange,
 }) => {
   const getMethodColor = (method: string) => {
@@ -40,12 +71,61 @@ export const JobTable: React.FC<JobTableProps> = ({
     return colors[method as keyof typeof colors] || "default";
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    message.success("ID copied to clipboard!");
+  };
+
+  // Helper to format time based on timezone preference
+  const formatTime = (timestamp: string, jobTimezone: string) => {
+    if (showLocalTimezone) {
+      return dayjs(timestamp).format("MMM D, HH:mm:ss");
+    } else {
+      return dayjs.utc(timestamp).tz(jobTimezone).format("MMM D, HH:mm:ss");
+    }
+  };
+
+  // Helper to get timezone label
+  const getTimezoneLabel = (jobTimezone: string) => {
+    return showLocalTimezone ? "Local" : jobTimezone;
+  };
+
+  // Helper to get tooltip text
+  const getTimezoneTooltip = (context: string, jobTimezone: string) => {
+    if (showLocalTimezone) {
+      return `${context} in your local timezone (job runs in ${jobTimezone})`;
+    } else {
+      return `${context} in job timezone: ${jobTimezone}`;
+    }
+  };
+
   const columns = [
+    {
+      title: "ID",
+      dataIndex: "id",
+      key: "id",
+      width: "6%",
+      render: (id: string) => (
+        <div className="flex items-center gap-1">
+          <Text style={{ fontSize: "12px", fontFamily: "monospace" }}>
+            {id.substring(0, 8)}...
+          </Text>
+          <Button
+            type="text"
+            icon={<CopyOutlined />}
+            size="small"
+            onClick={() => copyToClipboard(id)}
+            title="Copy full ID"
+            className="p-0"
+          />
+        </div>
+      ),
+    },
     {
       title: "Job Name",
       dataIndex: "name",
       key: "name",
-      width: "20%",
+      width: "16%",
       render: (name: string, record: Job) => (
         <div>
           <Text strong>{name}</Text>
@@ -59,7 +139,7 @@ export const JobTable: React.FC<JobTableProps> = ({
     {
       title: "Method & URL",
       key: "methodUrl",
-      width: "35%",
+      width: "20%",
       render: (_: unknown, record: Job) => (
         <div>
           <Tag color={getMethodColor(record.method)} className="mb-1">
@@ -70,65 +150,182 @@ export const JobTable: React.FC<JobTableProps> = ({
             style={{ fontSize: "12px", wordBreak: "break-all" }}
             title={record.url}
           >
-            {record.url}
+            {record.url.length > 35
+              ? `${record.url.substring(0, 35)}...`
+              : record.url}
           </Text>
         </div>
       ),
     },
     {
-      title: "ETA",
-      dataIndex: "nextRun",
-      key: "nextRun",
-      width: "15%",
-      render: (nextRun: string) => (
-        <Text style={{ fontSize: "14px" }}>
-          {dayjs(nextRun).format("DD MMM YYYY, HH:mm:ss")}
-        </Text>
+      title: "Status",
+      dataIndex: "enabled",
+      key: "enabled",
+      width: "6%",
+      align: "center" as const,
+      render: (enabled: boolean, record: Job) => (
+        <Switch
+          checked={enabled}
+          onChange={(checked: boolean) => onToggleStatus(record.id, checked)}
+          size="small"
+          checkedChildren="ON"
+          unCheckedChildren="OFF"
+        />
       ),
     },
     {
-      title: "Retries",
-      dataIndex: "retries",
-      key: "retries",
-      width: "10%",
+      title: "Last Run",
+      dataIndex: "lastRun",
+      key: "lastRun",
+      width: "12%",
+      render: (lastRun: string | null, record: Job) => (
+        <div>
+          {lastRun ? (
+            <>
+              <Tooltip title={getTimezoneTooltip("Last Run", record.timezone)}>
+                <Text style={{ fontSize: "12px" }}>
+                  {formatTime(lastRun, record.timezone)}
+                </Text>
+              </Tooltip>
+              <br />
+              <div className="flex items-center gap-1">
+                <Text type="secondary" style={{ fontSize: "11px" }}>
+                  {dayjs(lastRun).fromNow()}
+                </Text>
+                {record.lastExecutionStatus && (
+                  <Tooltip
+                    title={`Last execution: ${record.lastExecutionStatus}`}
+                  >
+                    <Tag
+                      color={
+                        record.lastExecutionStatus === "completed"
+                          ? "green"
+                          : record.lastExecutionStatus === "failed"
+                            ? "red"
+                            : record.lastExecutionStatus === "running"
+                              ? "blue"
+                              : "default"
+                      }
+                      style={{
+                        fontSize: "10px",
+                        margin: 0,
+                        padding: "0 4px",
+                        lineHeight: "14px",
+                      }}
+                    >
+                      {record.lastExecutionStatus === "completed"
+                        ? "✓"
+                        : record.lastExecutionStatus === "failed"
+                          ? "✗"
+                          : record.lastExecutionStatus === "running"
+                            ? "⟳"
+                            : "?"}
+                    </Tag>
+                  </Tooltip>
+                )}
+              </div>
+              <Text type="secondary" style={{ fontSize: "10px" }}>
+                {getTimezoneLabel(record.timezone)}
+              </Text>
+            </>
+          ) : (
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              Never
+            </Text>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "Next Run",
+      dataIndex: "nextRun",
+      key: "nextRun",
+      width: "12%",
+      render: (nextRun: string | null, record: Job) => (
+        <div>
+          {nextRun ? (
+            <>
+              <Tooltip title={getTimezoneTooltip("Next Run", record.timezone)}>
+                <Text style={{ fontSize: "12px" }}>
+                  {formatTime(nextRun, record.timezone)}
+                </Text>
+              </Tooltip>
+              <br />
+              <Text type="secondary" style={{ fontSize: "11px" }}>
+                {dayjs(nextRun).fromNow()}
+              </Text>
+              <br />
+              <Text type="secondary" style={{ fontSize: "10px" }}>
+                {getTimezoneLabel(record.timezone)}
+              </Text>
+            </>
+          ) : (
+            <Text type="secondary" style={{ fontSize: "12px" }}>
+              {record.enabled ? "Scheduling..." : "Disabled"}
+            </Text>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: "Success / Retries",
+      key: "successRetries",
+      width: "7%",
       align: "center" as const,
-      render: (retries: number) => (
-        <Tag color={retries > 0 ? "orange" : "green"}>{retries}</Tag>
+      render: (_: unknown, record: Job) => (
+        <div>
+          <Tag color="green" style={{ marginBottom: 2 }}>
+            ✓ {record.successCount}
+          </Tag>
+          <br />
+          <Tag color={record.retries > 0 ? "orange" : "default"}>
+            ↻ {record.retries}
+          </Tag>
+        </div>
       ),
     },
     {
       title: "Created",
       dataIndex: "createdAt",
       key: "createdAt",
-      width: "12%",
+      width: "7%",
       render: (date: string) => (
-        <Text style={{ fontSize: "12px" }} type="secondary">
-          {dayjs(date).format("MMM D, h:mm A")}
-        </Text>
+        <Tooltip
+          title={`Created: ${dayjs(date).format("MMM D, YYYY h:mm:ss A")} (local time)`}
+        >
+          <Text style={{ fontSize: "12px" }} type="secondary">
+            {dayjs(date).format("MMM D, h:mm A")}
+          </Text>
+        </Tooltip>
       ),
     },
     {
       title: "Actions",
       key: "actions",
-      width: "8%",
+      width: "12%",
       align: "center" as const,
       render: (_: unknown, record: Job) => (
         <div className="flex gap-1">
-          <Button
-            type="text"
-            icon={<PlayCircleOutlined />}
-            size="small"
-            title="Trigger now"
-            className="text-green-600"
-          />
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            size="small"
-            onClick={() => onEdit(record)}
-            loading={updatingJobId === record.id}
-            title="Edit job"
-          />
+          <Tooltip title="Trigger now">
+            <Button
+              type="text"
+              icon={<PlayCircleOutlined />}
+              size="small"
+              className="text-green-600"
+              loading={triggeringJobId === record.id}
+              disabled={!record.enabled || triggeringJobId === record.id}
+              onClick={() => onTrigger(record.id)}
+            />
+          </Tooltip>
+          <Tooltip title="Edit job">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              size="small"
+              onClick={() => onEdit(record)}
+              loading={updatingJobId === record.id}
+            />
+          </Tooltip>
           <Popconfirm
             title="Delete job"
             description="Are you sure you want to delete this job? This action cannot be undone."
@@ -137,13 +334,14 @@ export const JobTable: React.FC<JobTableProps> = ({
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
           >
-            <Button
-              type="text"
-              icon={<DeleteOutlined />}
-              size="small"
-              danger
-              title="Delete job"
-            />
+            <Tooltip title="Delete job">
+              <Button
+                type="text"
+                icon={<DeleteOutlined />}
+                size="small"
+                danger
+              />
+            </Tooltip>
           </Popconfirm>
         </div>
       ),

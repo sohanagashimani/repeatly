@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "../../../../prisma";
+import { JobSchedulingService } from "../../../../services/jobSchedulingService";
 
 export const getJobs = async (
   req: Request,
@@ -35,9 +34,34 @@ export const getJobs = async (
       take: limit,
     });
 
+    const jobSchedulingService = new JobSchedulingService(prisma);
+
+    // Get next scheduled run for each job
+    const jobsWithScheduling = await Promise.all(
+      jobs.map(async job => {
+        const nextScheduledRun = await jobSchedulingService.getNextScheduledRun(
+          job.id
+        );
+        const lastExecution = await jobSchedulingService.getLastExecution(
+          job.id
+        );
+
+        return {
+          ...job,
+          nextRun: nextScheduledRun?.scheduledAt || null,
+          nextScheduledJobId: nextScheduledRun?.scheduledJobId || null,
+          lastRun: lastExecution
+            ? lastExecution.completedAt || lastExecution.startedAt
+            : null,
+          lastExecutionStatus: lastExecution?.status || null,
+          lastExecutionId: lastExecution?.executionId || null,
+        };
+      })
+    );
+
     // Return paginated response
     res.status(200).json({
-      jobs,
+      jobs: jobsWithScheduling,
       pagination: {
         page,
         limit,

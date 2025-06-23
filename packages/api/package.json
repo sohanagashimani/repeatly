@@ -5,16 +5,16 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -b",
-    "dev": "nodemon --watch ../../packages/common --watch ./src --exec ts-node src/index.ts",
+    "dev": "nodemon --watch ./src --exec ts-node src/index.ts",
     "lint": "cd ../.. && npm run lint:api",
-    "lint:fix": "cd ../.. && npm run lint:api:fix",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
+    "lint:fix": "cd ../.. && npm run lint:api:fix"
   },
   "dependencies": {
-    "@prisma/client": "^5.12.0",
+    "@repeatly/database": "^1.0.0",
     "@types/node": "^24.0.3",
+    "bullmq": "^4.12.2",
     "cors": "^2.8.5",
+    "cron-parser": "^5.3.0",
     "cron-validator": "^1.3.1",
     "express": "^4.18.2",
     "firebase-admin": "^13.4.0",
@@ -24,7 +24,6 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.3",
-    "prisma": "^5.12.0"
+    "@types/express": "^5.0.3"
   }
 }

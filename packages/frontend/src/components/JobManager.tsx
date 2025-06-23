@@ -1,6 +1,10 @@
 import { useState } from "react";
-import { Button, Typography, Space } from "antd";
-import { PlusOutlined, ReloadOutlined } from "@ant-design/icons";
+import { Button, Typography, Space, Switch, Tooltip } from "antd";
+import {
+  PlusOutlined,
+  ReloadOutlined,
+  GlobalOutlined,
+} from "@ant-design/icons";
 import { useJobs, Job, CreateJobData } from "../hooks/useJobs";
 import { JobTable } from "./JobTable";
 import { JobModal } from "./CreateJobModal";
@@ -10,6 +14,11 @@ const { Title, Text } = Typography;
 export const JobManager: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [showLocalTimezone, setShowLocalTimezone] = useState(() => {
+    // Load preference from localStorage, default to false (job timezone)
+    const saved = localStorage.getItem("repeatly-show-local-timezone");
+    return saved ? JSON.parse(saved) : false;
+  });
 
   const {
     jobs,
@@ -17,9 +26,12 @@ export const JobManager: React.FC = () => {
     loading,
     creatingJob,
     updatingJobId,
+    triggeringJobId,
     createJob,
     updateJob,
     deleteJob,
+    triggerJob,
+    toggleJobStatus,
     changePage,
     refetch,
   } = useJobs();
@@ -55,9 +67,21 @@ export const JobManager: React.FC = () => {
     await deleteJob(jobId);
   };
 
+  const handleToggleStatus = async (jobId: string, enabled: boolean) => {
+    await toggleJobStatus(jobId, enabled);
+  };
+
   const handleCloseModal = () => {
     setModalVisible(false);
     setSelectedJob(null);
+  };
+
+  const handleTimezoneToggle = (checked: boolean) => {
+    setShowLocalTimezone(checked);
+    localStorage.setItem(
+      "repeatly-show-local-timezone",
+      JSON.stringify(checked)
+    );
   };
 
   return (
@@ -75,6 +99,25 @@ export const JobManager: React.FC = () => {
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-0">
             <Space>
+              <Tooltip
+                title={
+                  !showLocalTimezone
+                    ? "Show times in your local timezone"
+                    : "Show times in job's configured timezone"
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <GlobalOutlined />
+                  <Switch
+                    checked={showLocalTimezone}
+                    onChange={handleTimezoneToggle}
+                    size="small"
+                  />
+                  <Text style={{ fontSize: "12px" }}>
+                    {showLocalTimezone ? "Local TZ" : "Job TZ"}
+                  </Text>
+                </div>
+              </Tooltip>
               <Button
                 icon={<ReloadOutlined />}
                 onClick={refetch}
@@ -103,8 +146,12 @@ export const JobManager: React.FC = () => {
           pagination={pagination}
           loading={loading}
           updatingJobId={updatingJobId}
+          triggeringJobId={triggeringJobId}
+          showLocalTimezone={showLocalTimezone}
           onEdit={handleEditJob}
           onDelete={handleDeleteJob}
+          onTrigger={triggerJob}
+          onToggleStatus={handleToggleStatus}
           onPageChange={changePage}
         />
       </div>

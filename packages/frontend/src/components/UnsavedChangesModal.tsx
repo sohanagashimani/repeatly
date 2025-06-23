@@ -2,13 +2,13 @@ import { Modal, Button } from "antd";
 
 export const UnsavedChangesModal = ({
   visible = true,
-  setQuitModalVisible = () => true,
-  onOkClick = () => true,
+  setQuitModalVisible,
+  onOkClick,
   title = "Quit Editing?",
   subTitle = "You have unsaved changes. Are you sure you want to leave?",
 }: {
   visible: boolean;
-  setQuitModalVisible: (value: boolean) => void;
+  setQuitModalVisible: () => void;
   onOkClick: () => void;
   title?: string;
   subTitle?: string;
@@ -21,8 +21,8 @@ export const UnsavedChangesModal = ({
         </p>
       }
       open={visible}
-      onCancel={setQuitModalVisible}
-      destroyOnClose={true}
+      onCancel={() => setQuitModalVisible()}
+      destroyOnHidden={true}
       style={{ fontFamily: "figtree", top: "25%" }}
       transitionName=""
       width={400}
@@ -30,7 +30,7 @@ export const UnsavedChangesModal = ({
         <div className="flex flex-row gap-2 justify-center w-full">
           <Button
             key="stay"
-            onClick={setQuitModalVisible}
+            onClick={() => setQuitModalVisible()}
             className="text-textColor text-base font-normal leading-snug text-center w-full h-10"
           >
             No

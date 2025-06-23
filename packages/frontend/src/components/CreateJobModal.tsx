@@ -90,61 +90,66 @@ export const JobModal: React.FC<JobModalProps> = ({
   ];
 
   return (
-    <Modal
-      title={isEditMode ? `Edit Job: ${job?.name}` : "Create New Cron Job"}
-      open={visible}
-      onCancel={unsavedChanges.handleCloseAttempt}
-      width={600}
-      footer={[
-        <div
-          key="footer-btn-row"
-          className="flex flex-row items-center gap-2 w-full justify-end"
-        >
-          <Button onClick={unsavedChanges.handleCloseAttempt}>Cancel</Button>
-          {activeTab === "basic" ? (
-            <Button type="primary" onClick={handleNext}>
-              Next
-            </Button>
-          ) : (
-            <>
-              <Button onClick={() => setActiveTab("basic")}>Back</Button>
-              <Button
-                type="primary"
-                loading={loading}
-                onClick={form.handleSubmit}
-              >
-                {isEditMode ? "Update Job" : "Create Job"}
+    <>
+      <Modal
+        title={isEditMode ? `Edit Job: ${job?.name}` : "Create New Cron Job"}
+        open={visible}
+        onCancel={unsavedChanges.handleCloseAttempt}
+        width={600}
+        footer={[
+          <div
+            key="footer-btn-row"
+            className="flex flex-row items-center gap-2 w-full justify-end"
+          >
+            <Button onClick={unsavedChanges.handleCloseAttempt}>Cancel</Button>
+            {activeTab === "basic" ? (
+              <Button type="primary" onClick={handleNext}>
+                Next
               </Button>
-            </>
-          )}
-        </div>,
-        form.getErrorCount() > 0 && (
-          <div key="footer-error-row" className="w-full text-left mt-1">
-            <Text type="danger" className="text-xs">
-              Fix {form.getErrorCount()} error
-              {form.getErrorCount() > 1 ? "s" : ""} in form
-            </Text>
-          </div>
-        ),
-      ]}
-    >
-      <Alert
-        message="Cron Job Scheduling"
-        description="Your job will be executed according to the cron schedule. Make sure the target URL is accessible and can handle the HTTP requests."
-        type="info"
-        showIcon
-        className="mb-4"
-      />
+            ) : (
+              <>
+                <Button onClick={() => setActiveTab("basic")}>Back</Button>
+                <Button
+                  type="primary"
+                  loading={loading}
+                  onClick={form.handleSubmit}
+                >
+                  {isEditMode ? "Update Job" : "Create Job"}
+                </Button>
+              </>
+            )}
+          </div>,
+          form.getErrorCount() > 0 && (
+            <div key="footer-error-row" className="w-full text-left mt-1">
+              <Text type="danger" className="text-xs">
+                Fix {form.getErrorCount()} error
+                {form.getErrorCount() > 1 ? "s" : ""} in form
+              </Text>
+            </div>
+          ),
+        ]}
+      >
+        <Alert
+          message="Cron Job Scheduling"
+          description="Your job will be executed according to the cron schedule. Make sure the target URL is accessible and can handle the HTTP requests."
+          type="info"
+          showIcon
+          className="mb-2 p-3"
+        />
 
-      <Form layout="vertical">
-        <Tabs items={tabItems} activeKey={activeTab} onChange={setActiveTab} />
-      </Form>
-
+        <Form layout="vertical">
+          <Tabs
+            items={tabItems}
+            activeKey={activeTab}
+            onChange={setActiveTab}
+          />
+        </Form>
+      </Modal>
       <UnsavedChangesModal
         visible={unsavedChanges.showQuitModal}
         setQuitModalVisible={unsavedChanges.handleCancelQuit}
         onOkClick={unsavedChanges.handleConfirmQuit}
       />
-    </Modal>
+    </>
   );
 };

@@ -3,26 +3,45 @@
   "private": true,
   "version": "1.0.0",
   "workspaces": [
-    "packages/*"
+    "packages/database",
+    "packages/api",
+    "packages/frontend",
+    "packages/scheduler",
+    "packages/worker"
   ],
   "scripts": {
-    "dev:api": "nodemon --watch packages/common --watch packages/api --exec ts-node packages/api/src/index.ts",
-    "dev:scheduler": "nodemon --watch packages/common --watch packages/scheduler --exec ts-node packages/scheduler/src/index.ts",
-    "dev:worker": "nodemon --watch packages/common --watch packages/worker --exec ts-node packages/worker/src/index.ts",
+    "dev:api": "nodemon --watch packages/api --exec ts-node packages/api/src/index.ts",
+    "dev:scheduler": "nodemon --watch packages/scheduler --exec ts-node packages/scheduler/src/index.ts",
+    "dev:worker": "nodemon --watch packages/worker --exec ts-node packages/worker/src/index.ts",
     "dev:frontend": "cd packages/frontend && npm run dev",
     "dev": "concurrently \"npm:dev:api\" \"npm:dev:scheduler\" \"npm:dev:worker\" \"npm:dev:frontend\"",
-    "lint": "eslint packages/api packages/common packages/scheduler packages/worker --ext .ts --max-warnings=0 && eslint packages/frontend --ext .ts,.tsx --max-warnings=0",
-    "lint:fix": "eslint packages/api packages/common packages/scheduler packages/worker --ext .ts --fix && eslint packages/frontend --ext .ts,.tsx --fix",
+    "db:generate": "cd packages/database && npm run db:generate",
+    "db:migrate": "cd packages/database && npm run db:migrate",
+    "db:migrate:deploy": "cd packages/database && npm run db:migrate:deploy",
+    "db:push": "cd packages/database && npm run db:push",
+    "db:studio": "cd packages/database && npm run db:studio",
+    "lint": "eslint packages/api packages/scheduler packages/worker --ext .ts --max-warnings=0 && eslint packages/frontend --ext .ts,.tsx --max-warnings=0",
+    "lint:fix": "eslint packages/api packages/scheduler packages/worker --ext .ts --fix && eslint packages/frontend --ext .ts,.tsx --fix",
     "lint:api": "eslint packages/api --ext .ts --max-warnings=0",
     "lint:api:fix": "eslint packages/api --ext .ts --fix",
-    "lint:common": "eslint packages/common --ext .ts --max-warnings=0",
-    "lint:common:fix": "eslint packages/common --ext .ts --fix",
     "lint:scheduler": "eslint packages/scheduler --ext .ts --max-warnings=0",
     "lint:scheduler:fix": "eslint packages/scheduler --ext .ts --fix",
     "lint:worker": "eslint packages/worker --ext .ts --max-warnings=0",
     "lint:worker:fix": "eslint packages/worker --ext .ts --fix",
     "lint:frontend": "eslint packages/frontend --ext .ts,.tsx --max-warnings=0",
     "lint:frontend:fix": "eslint packages/frontend --ext .ts,.tsx --fix",
+    "build:database": "cd packages/database && npm run build",
+    "build:api": "cd packages/api && npm run build",
+    "build:scheduler": "cd packages/scheduler && npm run build",
+    "build:worker": "cd packages/worker && npm run build",
+    "build:frontend": "cd packages/frontend && npm run build",
+    "build:all": "npm run build:database && npm run build:api && npm run build:scheduler && npm run build:worker && npm run build:frontend",
+    "docker:build:database": "cd packages/database && docker build -t repeatly-database .",
+    "docker:build:api": "cd packages/api && docker build -t repeatly-api .",
+    "docker:build:scheduler": "cd packages/scheduler && docker build -t repeatly-scheduler .",
+    "docker:build:worker": "cd packages/worker && docker build -t repeatly-worker .",
+    "docker:build:all": "npm run docker:build:database && npm run docker:build:api && npm run docker:build:scheduler && npm run docker:build:worker",
+    "postinstall": "npm run build:database",
     "infra": "docker-compose up -d"
   },
   "devDependencies": {
@@ -43,6 +62,8 @@
     "ts-node": "^10.9.2"
   },
   "dependencies": {
-    "dotenv": "^16.5.0"
+    "@prisma/client": "^6.10.1",
+    "dotenv": "^16.5.0",
+    "prisma": "^6.10.1"
   }
 }

@@ -1,9 +1,10 @@
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Modal } from "antd";
+import { useEffect } from "react";
 import * as yup from "yup";
-import { isValidCron } from "cron-validator";
 import { CreateJobData, Job } from "./useJobs";
+import { isValidCron } from "cron-validator";
 
 // Form data interface (what the form handles)
 interface JobFormData {
@@ -13,6 +14,8 @@ interface JobFormData {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   headers?: string; // JSON string input by user
   body?: string; // JSON string input by user
+  timezone?: string;
+  enabled?: boolean;
 }
 
 const jobSchema: yup.ObjectSchema<JobFormData> = yup.object({
@@ -64,24 +67,36 @@ const jobSchema: yup.ObjectSchema<JobFormData> = yup.object({
         return false;
       }
     }),
+  timezone: yup.string().optional(),
+  enabled: yup.boolean().optional(),
 });
 
 export const useJobForm = (
   job?: Job | null,
   onSubmit?: (data: CreateJobData) => Promise<boolean>
 ) => {
+  const getDefaultValues = (jobData?: Job | null): JobFormData => ({
+    name: jobData?.name || "",
+    cron: jobData?.cron || "",
+    url: jobData?.url || "",
+    method: jobData?.method || "GET",
+    headers: jobData?.headers ? JSON.stringify(jobData.headers, null, 2) : "",
+    body: jobData?.body ? JSON.stringify(jobData.body, null, 2) : "",
+    timezone: jobData?.timezone || "UTC",
+    enabled: jobData?.enabled !== undefined ? jobData.enabled : true,
+  });
+
   const form = useForm<JobFormData>({
     resolver: yupResolver(jobSchema),
     mode: "onChange",
-    defaultValues: {
-      name: job?.name || "",
-      cron: job?.cron || "",
-      url: job?.url || "",
-      method: job?.method || "GET",
-      headers: job?.headers ? JSON.stringify(job.headers, null, 2) : "",
-      body: job?.body ? JSON.stringify(job.body, null, 2) : "",
-    },
+    defaultValues: getDefaultValues(job),
   });
+
+  // Update form values when job prop changes
+  useEffect(() => {
+    const defaultValues = getDefaultValues(job);
+    form.reset(defaultValues);
+  }, [job, form]);
 
   const parseFormData = (formData: JobFormData): CreateJobData => {
     let parsedHeaders: Record<string, string> | undefined = undefined;
@@ -112,6 +127,8 @@ export const useJobForm = (
       method: formData.method,
       headers: parsedHeaders,
       body: parsedBody,
+      timezone: formData.timezone,
+      enabled: formData.enabled,
     };
   };
 

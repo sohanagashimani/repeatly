@@ -15,10 +15,10 @@ services:
     image: redis/redis-stack:latest
     restart: always
     environment:
-      REDIS_ARGS: ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
+      REDIS_ARGS: --requirepass ${REDIS_PASSWORD:-devpassword123}
     ports:
       - "${REDIS_PORT:-6379}:6379"
       - "${REDIS_INSIGHT_PORT:-8001}:8001" # RedisInsight GUI
-    command: redis-server ${REDIS_PASSWORD:+--requirepass ${REDIS_PASSWORD}}
+    command: redis-server --requirepass ${REDIS_PASSWORD:-devpassword123}
 volumes:
   pgdata:

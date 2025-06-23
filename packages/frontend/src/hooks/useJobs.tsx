@@ -11,10 +11,18 @@ export interface Job {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   headers?: Record<string, string>;
   body?: unknown;
-  nextRun: string;
+  nextRun: string | null;
+  lastRun?: string | null;
   retries: number;
+  successCount: number;
+  enabled: boolean;
+  timezone: string;
   createdAt: string;
   updatedAt: string;
+  // New fields from partitioned system
+  nextScheduledJobId?: string | null;
+  lastExecutionStatus?: string | null;
+  lastExecutionId?: string | null;
 }
 
 export interface CreateJobData {
@@ -24,6 +32,8 @@ export interface CreateJobData {
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   headers?: Record<string, string>;
   body?: unknown;
+  enabled?: boolean;
+  timezone?: string;
 }
 
 export interface UpdateJobData extends CreateJobData {
@@ -52,6 +62,7 @@ export const useJobs = () => {
   const [loading, setLoading] = useState(false);
   const [creatingJob, setCreatingJob] = useState(false);
   const [updatingJobId, setUpdatingJobId] = useState<string | null>(null);
+  const [triggeringJobId, setTriggeringJobId] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchJobs = async (page: number = 1, limit: number = 10) => {
@@ -132,16 +143,63 @@ export const useJobs = () => {
         slug: `jobs/deleteJob/${jobId}`,
         method: "DELETE",
       });
+
       message.success("Job deleted successfully!");
-      // If deleting the last item on a page > 1, go to previous page
-      const newPage =
-        jobs.length === 1 && pagination.page > 1
-          ? pagination.page - 1
-          : pagination.page;
-      fetchJobs(newPage, pagination.limit);
+      await fetchJobs(); // Refresh the list
       return true;
     } catch (error: any) {
       message.error(error.message || "Failed to delete job");
+      return false;
+    }
+  };
+
+  const triggerJob = async (jobId: string): Promise<boolean> => {
+    setTriggeringJobId(jobId);
+    try {
+      const response = await apiHelper({
+        slug: `jobs/triggerJob/${jobId}`,
+        method: "POST",
+        data: { type: "manual" }, // Request immediate execution
+      });
+
+      if (response.execution === "immediate") {
+        message.success(
+          `🚀 Job "${response.job.name}" triggered immediately and queued for execution!`
+        );
+      } else {
+        message.success(
+          `📅 Job "${response.job.name}" scheduled for execution!`
+        );
+      }
+
+      // Refresh jobs list to show updated status
+      await fetchJobs();
+      return true;
+    } catch (error: any) {
+      message.error(error.message || "Failed to trigger job");
+      return false;
+    } finally {
+      setTriggeringJobId(null);
+    }
+  };
+
+  const toggleJobStatus = async (
+    jobId: string,
+    enabled: boolean
+  ): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      await apiHelper({
+        slug: `jobs/updateJob/${jobId}`,
+        method: "PATCH",
+        data: { enabled },
+      });
+      message.success(`Job ${enabled ? "enabled" : "disabled"} successfully!`);
+      fetchJobs(pagination.page, pagination.limit);
+      return true;
+    } catch (error: any) {
+      message.error(error.message || "Failed to update job status");
       return false;
     }
   };
@@ -162,11 +220,14 @@ export const useJobs = () => {
     loading,
     creatingJob,
     updatingJobId,
+    triggeringJobId,
     createJob,
     updateJob,
     deleteJob,
+    triggerJob,
+    toggleJobStatus,
     fetchJobs,
     changePage,
-    refetch: () => fetchJobs(pagination.page, pagination.limit),
+    refetch: () => fetchJobs(),
   };
 };
