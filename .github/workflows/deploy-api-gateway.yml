@@ -21,6 +21,7 @@ jobs:
   deploy-api-spec:
     name: Deploy API Spec to API Gateway
     runs-on: ubuntu-latest
+    environment: STAGING
 
     permissions:
       contents: "read"
