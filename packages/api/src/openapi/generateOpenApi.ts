@@ -2,17 +2,13 @@ import { writeFileSync } from "fs";
 import { resolve } from "path";
 
 import baseConfig from "./config/baseConfig";
-import {
-  generateRoutesWithPathAndMethod,
-  generateApiSpecPaths,
-} from "./helpers";
-
-import jobsRoutes from "../@routes/v1/jobs/jobsRoutes";
+import { generateApiSpecPaths } from "./helpers";
+import { jobRoutes } from "./routes/jobRoutes";
 
 const apiVersion = "v1";
 
-// Extract routes from Express router
-const routesWithPathAndMethod = generateRoutesWithPathAndMethod(jobsRoutes);
+// Use static route definitions to avoid Express/Google Auth dependencies
+const routesWithPathAndMethod = jobRoutes;
 
 // Generate OpenAPI paths
 const v1Paths = generateApiSpecPaths({
