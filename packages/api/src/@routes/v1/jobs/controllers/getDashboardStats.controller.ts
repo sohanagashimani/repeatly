@@ -1,0 +1,24 @@
+import { Request, Response, NextFunction } from "express";
+import { prisma } from "../../../../prisma";
+import { JobExecutionService } from "../../../../services/jobExecutionService";
+
+export const getDashboardStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = req.userId!;
+
+    // Parse days parameter (default to 30 days for recent activity)
+    const days = parseInt(req.query.days as string) || 30;
+
+    const jobExecutionService = new JobExecutionService(prisma);
+
+    const stats = await jobExecutionService.getDashboardStats(userId, days);
+
+    res.status(200).json(stats);
+  } catch (error) {
+    next(error);
+  }
+};

@@ -153,8 +153,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return true;
     } catch (error) {
-      console.error("Error creating user in backend:", error);
-      return false;
+      throw error;
     }
   };
 

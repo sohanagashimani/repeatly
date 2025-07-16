@@ -1,8 +1,10 @@
 import { Button } from "antd";
 import { ArrowRightOutlined, ClockCircleOutlined } from "@ant-design/icons";
 import { Link } from "react-router-dom";
+import { useAuthRedirect } from "../hooks/useAuthRedirect";
 
 export function LandingPage() {
+  useAuthRedirect();
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -87,7 +89,9 @@ export function LandingPage() {
       {/* Footer */}
       <footer className="py-12 px-6 lg:px-8 border-t border-gray-100">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-sm text-gray-500">© 2024 Repeatly</p>
+          <p className="text-sm text-gray-500">
+            © {new Date().getFullYear()} Repeatly
+          </p>
         </div>
       </footer>
     </div>

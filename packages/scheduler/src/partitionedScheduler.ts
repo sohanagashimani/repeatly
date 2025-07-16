@@ -235,6 +235,7 @@ export class PartitionedScheduler {
             delay: 2000,
           },
           removeOnComplete: 100,
+
           removeOnFail: 50,
           delay: Math.max(0, job.scheduledAt.getTime() - Date.now()), // Delay until scheduled time
         }

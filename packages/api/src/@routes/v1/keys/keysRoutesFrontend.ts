@@ -17,9 +17,9 @@ router.get("/", getApiKeys);
 router.post("/", createApiKey);
 
 // Get API key status
-router.get("/:keyId/status", getApiKeyStatus);
+router.get("/:id/status", getApiKeyStatus);
 
 // Delete API key
-router.delete("/:keyId", deleteApiKey);
+router.delete("/:id", deleteApiKey);
 
 export { router as keysRoutesFrontend };

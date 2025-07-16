@@ -11,7 +11,7 @@ export const deleteApiKey = async (
   try {
     const { id } = req.params;
     const userId = req.userId!;
-
+    console.log({ id });
     if (!id) {
       res.status(400).json({ error: "API key ID is required" });
       return;

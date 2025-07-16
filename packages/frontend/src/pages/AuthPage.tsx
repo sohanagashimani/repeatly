@@ -7,6 +7,7 @@ import {
   CheckCircleOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../hooks/useAuth";
+import { useAuthRedirect } from "../hooks/useAuthRedirect";
 import { useNavigate, Link } from "react-router-dom";
 
 interface AuthFormValues {
@@ -23,6 +24,9 @@ export function AuthPage() {
   const { signIn, signUp, resendVerificationEmail } = useAuth();
   const navigate = useNavigate();
 
+  // Redirect to dashboard if user is already authenticated
+  useAuthRedirect();
+
   const onFinish = async (values: AuthFormValues) => {
     setLoading(true);
     try {
@@ -38,7 +42,7 @@ export function AuthPage() {
       } else {
         await signIn(values.email, values.password);
         message.success("Signed in successfully!");
-        navigate("/app");
+        navigate("/");
       }
     } catch (error: any) {
       // Handle specific Firebase auth errors

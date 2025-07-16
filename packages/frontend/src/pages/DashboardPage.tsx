@@ -1,4 +1,4 @@
-import { Button, Avatar, Tabs } from "antd";
+import { Button, Avatar, Tabs, Spin, Alert } from "antd";
 import {
   UserOutlined,
   LogoutOutlined,
@@ -6,22 +6,103 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 import { useAuth } from "../hooks/useAuth";
+import { useDashboardStats } from "../hooks/useDashboardStats";
 import { useNavigate } from "react-router-dom";
 import ApiKeyManager from "../components/ApiKeyManager";
 import { JobManager } from "../components/JobManager";
 
 export function DashboardPage() {
   const { user, logout } = useAuth();
+  const { stats, loading, error } = useDashboardStats();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    // eslint-disable-next-line no-useless-catch
     try {
       await logout();
       navigate("/");
     } catch (error) {
       throw error;
     }
+  };
+
+  const renderOverviewStats = () => {
+    if (loading) {
+      return (
+        <div className="flex justify-center items-center py-8">
+          <Spin size="large" />
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
+          className="mb-4"
+        />
+      );
+    }
+
+    if (!stats) {
+      return (
+        <Alert
+          message="No data available"
+          description="Unable to load dashboard statistics"
+          type="info"
+          showIcon
+          className="mb-4"
+        />
+      );
+    }
+
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Active Jobs
+          </h3>
+          <div className="text-2xl sm:text-3xl font-bold text-blue-600">
+            {stats.activeJobs}
+          </div>
+          <p className="text-gray-600 text-sm sm:text-base">
+            {stats.activeJobs === 0
+              ? "No active jobs"
+              : `${stats.activeJobs} enabled job${stats.activeJobs > 1 ? "s" : ""}`}
+          </p>
+        </div>
+
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Total Executions
+          </h3>
+          <div className="text-2xl sm:text-3xl font-bold text-green-600">
+            {stats.totalExecutions.toLocaleString()}
+          </div>
+          <p className="text-gray-600 text-sm sm:text-base">
+            {stats.totalExecutions === 0
+              ? "No executions yet"
+              : "All-time executions"}
+          </p>
+        </div>
+
+        <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            Success Rate
+          </h3>
+          <div className="text-2xl sm:text-3xl font-bold text-purple-600">
+            {stats.successRate}%
+          </div>
+          <p className="text-gray-600 text-sm sm:text-base">
+            {stats.totalExecutions === 0
+              ? "No data available"
+              : "Overall success rate"}
+          </p>
+        </div>
+      </div>
+    );
   };
 
   const items = [
@@ -39,59 +120,7 @@ export function DashboardPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Active Jobs
-              </h3>
-              <div className="text-2xl sm:text-3xl font-bold text-blue-600">
-                0
-              </div>
-              <p className="text-gray-600 text-sm sm:text-base">
-                No jobs scheduled yet
-              </p>
-            </div>
-
-            <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Total Executions
-              </h3>
-              <div className="text-2xl sm:text-3xl font-bold text-green-600">
-                0
-              </div>
-              <p className="text-gray-600 text-sm sm:text-base">
-                No executions yet
-              </p>
-            </div>
-
-            <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                Success Rate
-              </h3>
-              <div className="text-2xl sm:text-3xl font-bold text-purple-600">
-                -
-              </div>
-              <p className="text-gray-600 text-sm sm:text-base">
-                No data available
-              </p>
-            </div>
-          </div>
-
-          <div className="bg-white p-4 sm:p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Getting Started
-            </h3>
-            <div className="space-y-3 sm:space-y-4">
-              <p className="text-gray-600 text-sm sm:text-base">
-                Welcome to Repeatly! Here&apos;s how to get started:
-              </p>
-              <ol className="list-decimal list-inside space-y-2 text-gray-700 text-sm sm:text-base">
-                <li>Create an API key in the &quot;API Keys&quot; tab</li>
-                <li>Create your first cron job in the &quot;Jobs&quot; tab</li>
-                <li>Monitor your job executions from the overview</li>
-              </ol>
-            </div>
-          </div>
+          {renderOverviewStats()}
         </div>
       ),
     },

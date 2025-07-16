@@ -1,4 +1,4 @@
-import { Queue, Worker, QueueOptions, WorkerOptions, Job } from "bullmq";
+import { Worker, QueueOptions, WorkerOptions, Job } from "bullmq";
 import { redisConfig } from "./redis";
 
 /**
@@ -36,20 +36,6 @@ export interface JobQueueData {
 }
 
 /**
- * Log data structure for the logs queue
- */
-export interface LogQueueData {
-  jobId: string;
-  executionId: string;
-  status: "success" | "failure";
-  responseStatus?: number;
-  responseBody?: string;
-  errorMessage?: string;
-  executedAt: Date;
-  duration: number;
-}
-
-/**
  * Default queue options
  */
 export const defaultQueueOptions: QueueOptions = {
@@ -74,13 +60,6 @@ export const defaultWorkerOptions: WorkerOptions = {
 };
 
 /**
- * Create a queue instance
- */
-export function createQueue(name: string, options?: QueueOptions): Queue {
-  return new Queue(name, { ...defaultQueueOptions, ...options });
-}
-
-/**
  * Create a worker instance
  */
 export function createWorker(
@@ -89,25 +68,4 @@ export function createWorker(
   options?: WorkerOptions
 ): Worker {
   return new Worker(name, processor, { ...defaultWorkerOptions, ...options });
-}
-
-/**
- * Lazy-initialized queue instances
- * Only create when actually needed (scheduler/worker services)
- */
-let _jobsQueue: Queue | null = null;
-let _logsQueue: Queue | null = null;
-
-export function getJobsQueue(): Queue {
-  if (!_jobsQueue) {
-    _jobsQueue = createQueue(QUEUE_NAMES.JOBS);
-  }
-  return _jobsQueue;
-}
-
-export function getLogsQueue(): Queue {
-  if (!_logsQueue) {
-    _logsQueue = createQueue(QUEUE_NAMES.LOGS);
-  }
-  return _logsQueue;
 }

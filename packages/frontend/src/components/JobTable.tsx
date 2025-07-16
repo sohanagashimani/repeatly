@@ -14,12 +14,14 @@ import {
   PlayCircleOutlined,
   ClockCircleOutlined,
   CopyOutlined,
+  EyeOutlined,
 } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
-import { Job, PaginationInfo } from "../hooks/useJobs";
+import type { Job, PaginationInfo } from "../hooks/useJobs";
 
 // Timezone handling:
 // - Last Run: Shows in job's configured timezone (converted from UTC database timestamp)
@@ -60,6 +62,8 @@ export const JobTable: React.FC<JobTableProps> = ({
   onToggleStatus,
   onPageChange,
 }) => {
+  const navigate = useNavigate();
+
   const getMethodColor = (method: string) => {
     const colors = {
       GET: "blue",
@@ -74,6 +78,10 @@ export const JobTable: React.FC<JobTableProps> = ({
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     message.success("ID copied to clipboard!");
+  };
+
+  const handleViewDetails = (job: Job) => {
+    navigate(`/jobs/${job.id}`);
   };
 
   // Helper to format time based on timezone preference
@@ -302,10 +310,18 @@ export const JobTable: React.FC<JobTableProps> = ({
     {
       title: "Actions",
       key: "actions",
-      width: "12%",
+      width: "14%",
       align: "center" as const,
       render: (_: unknown, record: Job) => (
         <div className="flex gap-1">
+          <Tooltip title="View details">
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              size="small"
+              onClick={() => handleViewDetails(record)}
+            />
+          </Tooltip>
           <Tooltip title="Trigger now">
             <Button
               type="text"

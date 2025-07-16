@@ -2,7 +2,6 @@ import { Job } from "bullmq";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { createWorker, QUEUE_NAMES, JobQueueData } from "./queue";
 import { prisma } from "./prisma";
-import { getNextRunTime } from "./cron";
 import {
   JobExecutionService,
   JobExecutionResult,
@@ -51,7 +50,6 @@ export class JobWorker {
   ): Promise<JobExecutionResult> {
     const startTime = Date.now();
     const { scheduledJobId, scheduledJobHour, jobId, jobData } = job.data;
-
     console.log(
       `🔄 Processing job: ${jobId} (scheduled: ${scheduledJobId}) - ${jobData.name}`
     );
