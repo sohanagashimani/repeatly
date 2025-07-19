@@ -12,7 +12,7 @@ import {
   DatePicker,
   Input,
   Tooltip,
-  Modal,
+  Drawer,
   Spin,
   Empty,
   Dropdown,
@@ -60,50 +60,264 @@ const Card: React.FC<{ title?: string; children: React.ReactNode }> = ({
   </div>
 );
 
-// Temporary ExecutionDetailsModal placeholder
+// Enhanced ExecutionDetailsModal with comprehensive data display
 const ExecutionDetailsModal: React.FC<{
   visible: boolean;
   execution: ExecutionHistoryItem | null;
   onClose: () => void;
-}> = ({ visible, execution, onClose }) => (
-  <Modal
-    title="Execution Details"
-    open={visible}
-    onCancel={onClose}
-    footer={null}
-    width={800}
-  >
-    <div className="space-y-4">
-      {execution && (
-        <>
-          <div>
-            <Text strong>Status:</Text>{" "}
-            <Tag color="blue">{execution.status}</Tag>
-          </div>
-          <div>
-            <Text strong>Started:</Text>{" "}
-            {dayjs(execution.startedAt).format("MMM D, YYYY h:mm:ss A")}
-          </div>
-          <div>
-            <Text strong>Duration:</Text>{" "}
-            {execution.duration ? `${execution.duration}s` : "N/A"}
-          </div>
-          <div>
-            <Text strong>Attempt:</Text> #{execution.attempt}
-          </div>
-          {execution.error && (
-            <div>
-              <Text strong>Error:</Text>
-              <div className="mt-2 p-3 bg-red-50 rounded border border-red-200">
-                <Text type="danger">{execution.error}</Text>
-              </div>
-            </div>
+}> = ({ visible, execution, onClose }) => {
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "completed":
+        return <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+      case "failed":
+        return <CloseCircleOutlined style={{ color: "#ff4d4f" }} />;
+      case "running":
+        return <ClockCircleOutlined style={{ color: "#1890ff" }} />;
+      default:
+        return <PlayCircleOutlined />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "success";
+      case "failed":
+        return "error";
+      case "running":
+        return "processing";
+      default:
+        return "default";
+    }
+  };
+
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return "0 B";
+    const k = 1024;
+    const sizes = ["B", "KB", "MB", "GB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  return (
+    <Drawer
+      title={
+        <div className="flex items-center gap-2">
+          <span>Execution Details</span>
+          {execution && (
+            <Tag
+              color={getStatusColor(execution.status)}
+              icon={getStatusIcon(execution.status)}
+            >
+              {execution.status.charAt(0).toUpperCase() +
+                execution.status.slice(1)}
+            </Tag>
           )}
-        </>
+        </div>
+      }
+      open={visible}
+      onClose={onClose}
+      width="60%"
+      placement="right"
+    >
+      {execution && (
+        <div className="space-y-6">
+          {/* Basic Information */}
+          <Card title="Basic Information">
+            <Row gutter={[16, 16]}>
+              <Col xs={12} sm={8}>
+                <div>
+                  <Text type="secondary" className="block text-sm">
+                    Status
+                  </Text>
+                  <Tag
+                    color={getStatusColor(execution.status)}
+                    icon={getStatusIcon(execution.status)}
+                  >
+                    {execution.status.charAt(0).toUpperCase() +
+                      execution.status.slice(1)}
+                  </Tag>
+                </div>
+              </Col>
+              <Col xs={12} sm={8}>
+                <div>
+                  <Text type="secondary" className="block text-sm">
+                    Type
+                  </Text>
+                  <Tag color={execution.type === "manual" ? "blue" : "default"}>
+                    {execution.type === "manual" ? "Manual" : "Scheduled"}
+                  </Tag>
+                </div>
+              </Col>
+              <Col xs={12} sm={8}>
+                <div>
+                  <Text type="secondary" className="block text-sm">
+                    Attempt
+                  </Text>
+                  <Tag color={execution.attempt > 1 ? "orange" : "default"}>
+                    #{execution.attempt}
+                  </Tag>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Timing Information */}
+          <Card title="Timing">
+            <Row gutter={[16, 16]}>
+              <Col xs={24} sm={8}>
+                <div>
+                  <Text type="secondary" className="block text-sm">
+                    Started At
+                  </Text>
+                  <Text className="block">
+                    {dayjs(execution.startedAt).format("MMM D, YYYY h:mm:ss A")}
+                  </Text>
+                  <Text type="secondary" className="text-xs">
+                    {dayjs(execution.startedAt).fromNow()}
+                  </Text>
+                </div>
+              </Col>
+              {execution.completedAt && (
+                <Col xs={24} sm={8}>
+                  <div>
+                    <Text type="secondary" className="block text-sm">
+                      Completed At
+                    </Text>
+                    <Text className="block">
+                      {dayjs(execution.completedAt).format(
+                        "MMM D, YYYY h:mm:ss A"
+                      )}
+                    </Text>
+                    <Text type="secondary" className="text-xs">
+                      {dayjs(execution.completedAt).fromNow()}
+                    </Text>
+                  </div>
+                </Col>
+              )}
+              <Col xs={24} sm={8}>
+                <div>
+                  <Text type="secondary" className="block text-sm">
+                    Duration
+                  </Text>
+                  <Text className="block">
+                    {execution.duration ? `${execution.duration}s` : "N/A"}
+                  </Text>
+                </div>
+              </Col>
+            </Row>
+          </Card>
+
+          {/* Response Information */}
+          {execution.response && (
+            <Card title="Response Details">
+              <Row gutter={[16, 16]}>
+                {execution.response.statusCode && (
+                  <Col xs={12} sm={6}>
+                    <div>
+                      <Text type="secondary" className="block text-sm">
+                        Status Code
+                      </Text>
+                      <Tag
+                        color={
+                          execution.response.statusCode >= 200 &&
+                          execution.response.statusCode < 300
+                            ? "green"
+                            : "red"
+                        }
+                      >
+                        {execution.response.statusCode}
+                      </Tag>
+                    </div>
+                  </Col>
+                )}
+                {execution.response.contentType && (
+                  <Col xs={12} sm={6}>
+                    <div>
+                      <Text type="secondary" className="block text-sm">
+                        Content Type
+                      </Text>
+                      <Text className="block">
+                        {execution.response.contentType}
+                      </Text>
+                    </div>
+                  </Col>
+                )}
+                {execution.response.responseSize && (
+                  <Col xs={12} sm={6}>
+                    <div>
+                      <Text type="secondary" className="block text-sm">
+                        Response Size
+                      </Text>
+                      <Text className="block">
+                        {formatBytes(execution.response.responseSize)}
+                      </Text>
+                    </div>
+                  </Col>
+                )}
+                {execution.response.duration && (
+                  <Col xs={12} sm={6}>
+                    <div>
+                      <Text type="secondary" className="block text-sm">
+                        HTTP Duration
+                      </Text>
+                      <Text className="block">
+                        {execution.response.duration}ms
+                      </Text>
+                    </div>
+                  </Col>
+                )}
+              </Row>
+
+              {/* Response Headers */}
+              {execution.response.data?.headers && (
+                <div className="mt-4">
+                  <Text type="secondary" className="block text-sm mb-2">
+                    Response Headers
+                  </Text>
+                  <pre className="bg-gray-50 p-3 rounded text-xs overflow-auto max-h-48">
+                    {JSON.stringify(execution.response.data.headers, null, 2)}
+                  </pre>
+                </div>
+              )}
+
+              {/* Response Data */}
+              {execution.response.data && (
+                <div className="mt-4">
+                  <Text type="secondary" className="block text-sm mb-2">
+                    Response Data
+                  </Text>
+                  <pre className="bg-gray-50 p-3 rounded text-xs overflow-auto max-h-64">
+                    {JSON.stringify(execution.response.data, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </Card>
+          )}
+
+          {/* Error Information */}
+          {execution.error && (
+            <Card title="Error Details">
+              <div className="p-3 bg-red-50 rounded border border-red-200">
+                <Text type="danger" className="font-mono text-sm">
+                  {execution.error}
+                </Text>
+              </div>
+            </Card>
+          )}
+
+          {/* Raw JSON */}
+          <Card title="Raw Execution Data">
+            <pre className="bg-gray-50 p-3 rounded text-xs overflow-auto max-h-96">
+              {JSON.stringify(execution, null, 2)}
+            </pre>
+          </Card>
+        </div>
       )}
-    </div>
-  </Modal>
-);
+    </Drawer>
+  );
+};
 
 interface ExecutionHistoryProps {
   jobId: string;

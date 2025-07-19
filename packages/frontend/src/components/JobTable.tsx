@@ -310,38 +310,38 @@ export const JobTable: React.FC<JobTableProps> = ({
     {
       title: "Actions",
       key: "actions",
-      width: "14%",
-      align: "center" as const,
+      width: "20%",
+      align: "left" as const,
       render: (_: unknown, record: Job) => (
-        <div className="flex gap-1">
-          <Tooltip title="View details">
-            <Button
-              type="text"
-              icon={<EyeOutlined />}
-              size="small"
-              onClick={() => handleViewDetails(record)}
-            />
-          </Tooltip>
-          <Tooltip title="Trigger now">
-            <Button
-              type="text"
-              icon={<PlayCircleOutlined />}
-              size="small"
-              className="text-green-600"
-              loading={triggeringJobId === record.id}
-              disabled={!record.enabled || triggeringJobId === record.id}
-              onClick={() => onTrigger(record.id)}
-            />
-          </Tooltip>
-          <Tooltip title="Edit job">
-            <Button
-              type="text"
-              icon={<EditOutlined />}
-              size="small"
-              onClick={() => onEdit(record)}
-              loading={updatingJobId === record.id}
-            />
-          </Tooltip>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="primary"
+            icon={<EyeOutlined />}
+            size="small"
+            onClick={() => handleViewDetails(record)}
+          >
+            View
+          </Button>
+          <Button
+            type="default"
+            icon={<PlayCircleOutlined />}
+            size="small"
+            className="text-green-600 border-green-600 hover:bg-green-50"
+            loading={triggeringJobId === record.id}
+            disabled={!record.enabled || triggeringJobId === record.id}
+            onClick={() => onTrigger(record.id)}
+          >
+            {triggeringJobId === record.id ? "Running" : "Run"}
+          </Button>
+          <Button
+            type="default"
+            icon={<EditOutlined />}
+            size="small"
+            onClick={() => onEdit(record)}
+            loading={updatingJobId === record.id}
+          >
+            Edit
+          </Button>
           <Popconfirm
             title="Delete job"
             description="Are you sure you want to delete this job? This action cannot be undone."
@@ -350,14 +350,14 @@ export const JobTable: React.FC<JobTableProps> = ({
             cancelText="Cancel"
             okButtonProps={{ danger: true }}
           >
-            <Tooltip title="Delete job">
-              <Button
-                type="text"
-                icon={<DeleteOutlined />}
-                size="small"
-                danger
-              />
-            </Tooltip>
+            <Button
+              type="default"
+              icon={<DeleteOutlined />}
+              size="small"
+              danger
+            >
+              Delete
+            </Button>
           </Popconfirm>
         </div>
       ),

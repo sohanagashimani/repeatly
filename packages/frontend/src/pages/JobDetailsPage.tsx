@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   Button,
   Breadcrumb,
@@ -354,14 +354,15 @@ export const JobDetailsPage: React.FC = () => {
             {/* Breadcrumb */}
             <Breadcrumb className="mb-4">
               <Breadcrumb.Item>
-                <Button
-                  type="link"
-                  icon={<ArrowLeftOutlined />}
-                  onClick={() => navigate("/")}
-                  className="p-0"
+                <Link
+                  to="/"
+                  className="ant-breadcrumb-link flex items-center gap-2"
                 >
-                  Jobs
-                </Button>
+                  <div className="flex items-center gap-3">
+                    <ArrowLeftOutlined />
+                    <span>Jobs</span>
+                  </div>
+                </Link>
               </Breadcrumb.Item>
               <Breadcrumb.Item>{job.name}</Breadcrumb.Item>
             </Breadcrumb>

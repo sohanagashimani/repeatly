@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from "express";
 import { prisma } from "../../../../prisma";
-import { JobSchedulingService } from "../../../../services/jobSchedulingService";
 import { Queue } from "bullmq";
 import { redisConfig } from "../../../../redis";
 
