@@ -1,0 +1,82 @@
+name: Deploy Repeatly API Spec to API Gateway
+
+env:
+  PROJECT_ID: resounding-age-438010-g3
+  REGION: asia-northeast1
+  API_GATEWAY_NAME: repeatly-api
+  API_NAME: repeatly-api
+  API_GATEWAY_HOST: repeatly-api-0jqlghrn8mcd8.apigateway.resounding-age-438010-g3.cloud.goog
+  BACKEND_ADDRESS: https://your-backend-url.com # Update with your actual backend URL
+  GOOGLE_APPLICATION_CREDENTIALS: ${{secrets.GOOGLE_APPLICATION_CREDENTIALS_STAGING_REPEATLY}}
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_spec_name:
+        description: "API Spec Name. Eg: v1-0-1"
+        required: true
+        default: "v1-0-0"
+
+jobs:
+  deploy-api-spec:
+    name: Deploy API Spec to API Gateway
+    runs-on: ubuntu-latest
+    environment: STAGING
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install script dependencies
+        run: cd scripts && npm install
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.DEV_REPEATLY_ADMIN_SERVICE_ACCOUNT }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Generate API Spec Name
+        id: apiSpecName
+        run: echo "apiSpecName=repeatly-api-config-${{github.event.inputs.api_spec_name}}" >> $GITHUB_OUTPUT
+
+      - name: Set environment variables for API generation
+        run: |
+          echo "API_GATEWAY_HOST=${{env.API_GATEWAY_HOST}}" >> $GITHUB_ENV
+          echo "API_GATEWAY_BACKEND_ADDRESS=${{env.BACKEND_ADDRESS}}" >> $GITHUB_ENV
+
+      - name: Generate OpenAPI Specification
+        run: cd scripts && npm run generate:openapi
+
+      - name: Upload API Spec to API Gateway
+        run: |
+          gcloud api-gateway api-configs create ${{ steps.apiSpecName.outputs.apiSpecName }} \
+            --api=${{env.API_NAME}} \
+            --openapi-spec=open-api.json \
+            --project ${{env.PROJECT_ID}}
+
+      - name: Update API Gateway
+        run: |
+          gcloud api-gateway gateways update ${{env.API_GATEWAY_NAME}} \
+            --api=${{env.API_NAME}} \
+            --api-config=${{ steps.apiSpecName.outputs.apiSpecName }} \
+            --location=${{env.REGION}} \
+            --project ${{env.PROJECT_ID}}
+
+      - name: Deployment Success
+        run: |
+          echo "🎉 API Gateway deployment successful!"
+          echo "Gateway URL: https://${{env.API_GATEWAY_HOST}}"
+          echo "API Config: ${{ steps.apiSpecName.outputs.apiSpecName }}"

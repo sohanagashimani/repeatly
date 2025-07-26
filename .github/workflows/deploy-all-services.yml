@@ -1,0 +1,142 @@
+name: Deploy All Services to Cloud Run
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: repeatly-dev
+  REGION: asia-south1
+  REGISTRY: asia-south1-docker.pkg.dev
+
+jobs:
+  deploy-all:
+    name: Deploy All Services
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Set timestamp
+        run: echo "TIMESTAMP=$(date +'%s')" >> $GITHUB_ENV
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.DEV_REPEATLY_ADMIN_SERVICE_ACCOUNT }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Authorize Docker
+        run: gcloud auth configure-docker ${{ env.REGISTRY }}
+
+      - name: Build and Push Migration Image
+        run: |
+          docker build -f packages/database/Dockerfile -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-db-migrate:${{ github.sha }} .
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-db-migrate:${{ github.sha }}
+
+      - name: Create or Update Migration Job
+        run: |
+          # Try to update the job, if it doesn't exist, create it
+          gcloud run jobs update repeatly-db-migrate \
+            --image=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-db-migrate:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --set-secrets="DATABASE_URL=database-url:latest" \
+            --command="npx,prisma,migrate,deploy" \
+            --task-timeout=300s \
+            --max-retries=3 \
+            --memory=512Mi \
+            --cpu=1 \
+            --quiet || \
+          gcloud run jobs create repeatly-db-migrate \
+            --image=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-db-migrate:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --set-secrets="DATABASE_URL=database-url:latest" \
+            --command="npx,prisma,migrate,deploy" \
+            --task-timeout=300s \
+            --max-retries=3 \
+            --memory=512Mi \
+            --cpu=1 \
+            --quiet
+
+      - name: Execute Migration Job
+        run: |
+          gcloud run jobs execute repeatly-db-migrate \
+            --region=${{ env.REGION }} \
+            --quiet
+          echo "✅ Database migrations completed successfully"
+
+      # Deploy API Service
+      - name: Build and Deploy API
+        run: |
+          docker build -f packages/api/Dockerfile -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-api:${{ github.sha }} .
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-api:${{ github.sha }}
+
+          gcloud run deploy repeatly-api \
+            --image=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-api:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --allow-unauthenticated \
+            --max-instances=1 \
+            --memory=512Mi \
+            --timeout=300 \
+            --set-env-vars="NODE_ENV=production" \
+            --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest,GOOGLE_APPLICATION_CREDENTIALS=google-service-account:latest" \
+            --labels="env=production,service=api,timestamp=${{ env.TIMESTAMP }}"
+
+      # Deploy Scheduler Service
+      - name: Build and Deploy Scheduler
+        run: |
+          docker build -f packages/scheduler/Dockerfile -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-scheduler:${{ github.sha }} .
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-scheduler:${{ github.sha }}
+
+          gcloud run deploy repeatly-scheduler \
+            --image=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-scheduler:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --no-allow-unauthenticated \
+            --min-instances=1 \
+            --max-instances=1 \
+            --memory=256Mi \
+            --timeout=3600 \
+            --set-env-vars="NODE_ENV=production" \
+            --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest" \
+            --labels="env=production,service=scheduler,timestamp=${{ env.TIMESTAMP }}"
+
+      # Deploy Worker Service
+      - name: Build and Deploy Worker
+        run: |
+          docker build -f packages/worker/Dockerfile -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-worker:${{ github.sha }} .
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-worker:${{ github.sha }}
+
+          gcloud run deploy repeatly-worker \
+            --image=${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/cloud-run-images/repeatly-worker:${{ github.sha }} \
+            --region=${{ env.REGION }} \
+            --no-allow-unauthenticated \
+            --min-instances=1 \
+            --max-instances=1 \
+            --memory=512Mi \
+            --timeout=3600 \
+            --set-env-vars="NODE_ENV=production" \
+            --set-secrets="DATABASE_URL=database-url:latest,REDIS_URL=redis-url:latest" \
+            --labels="env=production,service=worker,timestamp=${{ env.TIMESTAMP }}"
+
+      - name: Deployment Summary
+        run: |
+          echo "🚀 All services deployed successfully!"
+          echo "API: https://repeatly-api-$(gcloud config get-value project).a.run.app"
+          echo "Scheduler: repeatly-scheduler (internal)"
+          echo "Worker: repeatly-worker (internal)"
+          echo ""
+          echo "📋 Deployment completed at: $(date)"
+          echo "🔗 Commit: ${{ github.sha }}"

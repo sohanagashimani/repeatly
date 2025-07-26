@@ -1,0 +1,54 @@
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+build
+dist
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and editor files
+.cursorrules
+.cursor
+.vscode/
+.idea/
+
+# Documentation
+PROGRESS.md
+PRD.md
+rules.mdc
+
+# API files
+openapi.yaml
+open-api.json
+
+# Credentials
+creds.txt
+
+# Turborepo
+.turbo/
+**/.turbo/
+*.turbo/turbo-build.log
+
+# Logs
+logs
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+GCP_SETUP.md

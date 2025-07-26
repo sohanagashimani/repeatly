@@ -1,0 +1,67 @@
+name: Deploy Frontend to Firebase Hosting
+
+on:
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: repeatly-dev
+
+jobs:
+  deploy-frontend:
+    name: Deploy Frontend to Firebase Hosting
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: "read"
+      id-token: "write"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('packages/frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Install dependencies
+        working-directory: ./packages/frontend
+        run: npm ci --ignore-scripts
+
+      - name: Create production environment file
+        working-directory: ./packages/frontend
+        run: |
+          cat > .env.production << EOF
+          VITE_FIREBASE_API_KEY=${{ secrets.DEV_REPEATLY_FIREBASE_API_KEY }}
+          VITE_FIREBASE_AUTH_DOMAIN=${{ secrets.DEV_REPEATLY_FIREBASE_AUTH_DOMAIN }}
+          VITE_FIREBASE_PROJECT_ID=${{ env.PROJECT_ID }}
+          EOF
+
+      - name: Build application
+        working-directory: ./packages/frontend
+        run: npm run build
+
+      - id: "auth"
+        uses: "google-github-actions/auth@v2"
+        with:
+          credentials_json: ${{ secrets.DEV_REPEATLY_ADMIN_SERVICE_ACCOUNT }}
+
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Install Firebase CLI globally
+        run: npm install -g firebase-tools
+
+      - name: Deploy to Firebase Hosting
+        working-directory: ./packages/frontend
+        run: |
+          firebase deploy --only hosting:repeatly --project ${{ env.PROJECT_ID }}

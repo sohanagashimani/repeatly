@@ -1,0 +1,117 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id
+  email         String    @unique
+  firstName     String?
+  lastName      String?
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  jobs          Job[]
+  apiKeys       ApiKey[]
+}
+
+model Job {
+  id           String   @id @default(uuid())
+  name         String
+  cron         String
+  url          String
+  method       String
+  headers      Json?
+  body         Json?
+  retries      Int      @default(0)
+  successCount Int      @default(0)        // Track successful executions
+  enabled      Boolean  @default(true)     // Enable/disable job execution
+  timezone     String   @default("UTC")    // Timezone for cron execution
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  // Foreign key
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  
+  // Relations
+  scheduledRuns ScheduledJob[]
+  executions    JobExecution[]
+  
+  @@index([userId])
+  @@index([enabled])
+}
+
+model ScheduledJob {
+  id            String   @default(cuid())
+  jobId         String   @map("job_id")
+  scheduledAt   DateTime @map("scheduled_at")
+  scheduledHour Int      @map("scheduled_hour") // Hour component (0-23) for partitioning
+  status        String   @default("pending") // pending, completed, failed
+  type          String   @default("scheduled") // scheduled, manual
+  jobData       Json?    @map("job_data") // Snapshot of job config at schedule time
+  createdAt     DateTime @default(now()) @map("created_at")
+  
+  // Relationships
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  executions JobExecution[]
+  
+  // Composite primary key using hour for partitioning
+  @@id([id, scheduledHour])
+  @@index([scheduledAt, status])
+  @@index([jobId])
+  @@index([scheduledHour, status])
+  @@unique([jobId, scheduledAt, scheduledHour])
+  @@map("scheduled_jobs")
+}
+
+model JobExecution {
+  id                   String    @id @default(cuid())
+  jobId                String    @map("job_id")
+  scheduledJobId       String    @map("scheduled_job_id")
+  scheduledJobHour     Int       @map("scheduled_job_hour")
+  status               String    // running, completed, failed
+  startedAt            DateTime  @map("started_at")
+  completedAt          DateTime? @map("completed_at")
+  response             Json?     // HTTP response details
+  error                String?
+  attempt              Int       @default(1)
+  
+  // Relationships
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  scheduledJob ScheduledJob @relation(fields: [scheduledJobId, scheduledJobHour], references: [id, scheduledHour])
+  
+  @@index([jobId])
+  @@index([scheduledJobId, scheduledJobHour])
+  @@index([status])
+  @@map("job_executions")
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  name        String    // Display name for the key
+  gcpKeyName  String    // GCP API key resource name
+  lastFour    String    // Last 4 characters of the key for display
+  status      String    @default("creating") // "creating" | "completed"
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Foreign key
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@unique([gcpKeyName])
+}

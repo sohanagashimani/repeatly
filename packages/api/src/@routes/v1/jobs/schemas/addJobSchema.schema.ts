@@ -1,0 +1,28 @@
+import * as yup from "yup";
+import * as cronValidator from "cron-validator";
+
+const addJobSchema = yup.object({
+  body: yup.object({
+    name: yup.string().required("Name is required"),
+    cron: yup
+      .string()
+      .required("Cron expression is required")
+      .test("is-valid-cron", "Invalid cron expression", value => {
+        if (!value) return false;
+        return cronValidator.isValidCron(value);
+      }),
+    url: yup.string().url("Invalid URL").required("URL is required"),
+    method: yup
+      .string()
+      .oneOf(["GET", "POST", "PUT", "PATCH", "DELETE"], "Invalid HTTP method")
+      .required("HTTP method is required"),
+    headers: yup.object().optional(),
+    body: yup.mixed().optional(),
+    timezone: yup.string().optional().default("UTC"),
+    enabled: yup.boolean().optional().default(true),
+  }),
+});
+
+export type AddJobSchemaType = yup.InferType<typeof addJobSchema>;
+
+export default addJobSchema;

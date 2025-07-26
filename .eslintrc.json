@@ -1,0 +1,121 @@
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier"
+  ],
+  "env": {
+    "node": true,
+    "es2020": true
+  },
+  "parserOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2020
+  },
+  "rules": {
+    "no-console": "warn",
+    "no-unused-vars": "off",
+    "@typescript-eslint/explicit-function-return-type": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "no-useless-catch": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "warn",
+      {
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_"
+      }
+    ]
+  },
+  "ignorePatterns": [
+    "dist/",
+    "node_modules/",
+    "build/",
+    "packages/*/dist/",
+    "packages/api/prisma/migrations/",
+    "packages/frontend/global.d.ts",
+    "packages/frontend/vite-env.d.ts"
+  ],
+  "overrides": [
+    {
+      "files": ["packages/api/**/*.ts"],
+      "parserOptions": {
+        "project": "packages/api/tsconfig.json"
+      },
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["packages/scheduler/**/*.ts"],
+      "parserOptions": {
+        "project": "packages/scheduler/tsconfig.json"
+      },
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["packages/worker/**/*.ts"],
+      "parserOptions": {
+        "project": "packages/worker/tsconfig.json"
+      },
+      "rules": {
+        "no-console": "off"
+      }
+    },
+    {
+      "files": ["packages/common/**/*.ts"],
+      "parserOptions": {
+        "project": "packages/common/tsconfig.json"
+      },
+      "rules": {
+        "no-console": "warn"
+      }
+    },
+    {
+      "files": ["packages/frontend/src/**/*.{ts,tsx}"],
+      "env": {
+        "browser": true,
+        "es2021": true
+      },
+      "plugins": ["react", "react-hooks", "jsx-a11y"],
+      "extends": ["plugin:react/recommended", "plugin:react-hooks/recommended"],
+      "parserOptions": {
+        "project": "packages/frontend/tsconfig.json",
+        "ecmaFeatures": {
+          "jsx": true
+        }
+      },
+      "rules": {
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": "off",
+        "no-console": "warn"
+      },
+      "settings": {
+        "react": {
+          "version": "detect"
+        }
+      }
+    },
+    {
+      "files": [
+        "packages/frontend/*.{js,ts}",
+        "packages/frontend/**/*.config.{js,ts}"
+      ],
+      "parserOptions": {
+        "project": null
+      },
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
+    }
+  ]
+}
