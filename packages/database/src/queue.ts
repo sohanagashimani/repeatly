@@ -32,7 +32,7 @@ export const defaultQueueOptions: QueueOptions = {
   defaultJobOptions: {
     removeOnComplete: true,
     removeOnFail: true,
-    attempts: 2,
+    attempts: 1,
     backoff: {
       type: "exponential",
       delay: 2000,
@@ -44,10 +44,10 @@ export const defaultWorkerOptions: WorkerOptions = {
   connection: sharedRedisConnection,
   concurrency: 1,
   stalledInterval: 100000,
-  maxStalledCount: 1,
+  maxStalledCount: 0,
   limiter: {
     max: 1,
-    duration: 60000,
+    duration: 10000,
   },
   removeOnFail: {
     count: 0,
