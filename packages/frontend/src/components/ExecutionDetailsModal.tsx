@@ -23,7 +23,6 @@ dayjs.extend(duration);
 
 const { Text } = Typography;
 
-// Create Card component to avoid import issues
 const Card: React.FC<{
   title?: string;
   size?: string;
@@ -104,7 +103,6 @@ export const ExecutionDetailsModal: React.FC<ExecutionDetailsModalProps> = ({
 
     return (
       <div className="space-y-4">
-        {/* HTTP Response Info */}
         <div>
           <Text strong className="block mb-2">
             Response Information
@@ -140,7 +138,6 @@ export const ExecutionDetailsModal: React.FC<ExecutionDetailsModalProps> = ({
           </Row>
         </div>
 
-        {/* Response Data */}
         {response.data && (
           <div>
             <Text strong className="block mb-2">
@@ -181,7 +178,6 @@ export const ExecutionDetailsModal: React.FC<ExecutionDetailsModalProps> = ({
       className="execution-details-modal"
     >
       <div className="space-y-6">
-        {/* Basic Information */}
         <Card title="Basic Information" size="small">
           <Descriptions column={2}>
             <Descriptions.Item label="Execution ID">
@@ -238,7 +234,6 @@ export const ExecutionDetailsModal: React.FC<ExecutionDetailsModalProps> = ({
           </Descriptions>
         </Card>
 
-        {/* Error Information */}
         {execution.error && (
           <Alert
             message="Execution Error"
@@ -248,14 +243,12 @@ export const ExecutionDetailsModal: React.FC<ExecutionDetailsModalProps> = ({
           />
         )}
 
-        {/* Response Information */}
         {execution.response && (
           <Card title="Response Details" size="small">
             {renderResponseData(execution.response)}
           </Card>
         )}
 
-        {/* Running Status */}
         {isRunning && (
           <Alert
             message="Execution in Progress"

@@ -63,6 +63,7 @@ export const useJobs = () => {
   const [creatingJob, setCreatingJob] = useState(false);
   const [updatingJobId, setUpdatingJobId] = useState<string | null>(null);
   const [triggeringJobId, setTriggeringJobId] = useState<string | null>(null);
+  const [deletingJobId, setDeletingJobId] = useState<string | null>(null);
   const { user } = useAuth();
 
   const fetchJobs = async (page: number = 1, limit: number = 10) => {
@@ -138,6 +139,7 @@ export const useJobs = () => {
   const deleteJob = async (jobId: string): Promise<boolean> => {
     if (!user) return false;
 
+    setDeletingJobId(jobId);
     try {
       await apiHelper({
         slug: `jobs/deleteJob/${jobId}`,
@@ -150,6 +152,8 @@ export const useJobs = () => {
     } catch (error: any) {
       message.error(error.message || "Failed to delete job");
       return false;
+    } finally {
+      setDeletingJobId(null);
     }
   };
 
@@ -189,6 +193,7 @@ export const useJobs = () => {
   ): Promise<boolean> => {
     if (!user) return false;
 
+    setUpdatingJobId(jobId);
     try {
       await apiHelper({
         slug: `jobs/updateJob/${jobId}`,
@@ -201,6 +206,8 @@ export const useJobs = () => {
     } catch (error: any) {
       message.error(error.message || "Failed to update job status");
       return false;
+    } finally {
+      setUpdatingJobId(null);
     }
   };
 
@@ -221,6 +228,7 @@ export const useJobs = () => {
     creatingJob,
     updatingJobId,
     triggeringJobId,
+    deletingJobId,
     createJob,
     updateJob,
     deleteJob,

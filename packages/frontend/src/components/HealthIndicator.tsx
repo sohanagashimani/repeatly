@@ -5,6 +5,7 @@ import {
   CloseCircleOutlined,
   LoadingOutlined,
 } from "@ant-design/icons";
+import apiHelper from "../lib/apiHelper";
 
 type HealthStatus = "healthy" | "unhealthy" | "checking" | "unknown";
 
@@ -22,20 +23,11 @@ export function HealthIndicator() {
     try {
       setHealthStatus("checking");
 
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
-      const response = await fetch(`${baseUrl}/api/health`, {
+      const data: HealthResponse = await apiHelper({
+        slug: "health",
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
+        url: `${import.meta.env.VITE_API_BASE_URL}/api/health`,
       });
-
-      if (!response.ok) {
-        throw new Error(`Health check failed: ${response.status}`);
-      }
-
-      const data: HealthResponse = await response.json();
 
       setHealthStatus(data.status === "healthy" ? "healthy" : "unhealthy");
       setLastCheck(new Date());

@@ -5,4 +5,6 @@ if (!process.env.REDIS_URL) {
 }
 
 export const redisConfig = process.env.REDIS_URL;
-export const sharedRedisConnection = new IORedis(redisConfig);
+export const sharedRedisConnection = new IORedis(redisConfig, {
+  maxRetriesPerRequest: null,
+});

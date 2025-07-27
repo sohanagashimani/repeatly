@@ -13,6 +13,7 @@ import {
   Col,
   Statistic,
   message,
+  Popconfirm,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -63,6 +64,7 @@ export const JobDetailsPage: React.FC = () => {
     toggleJobStatus,
     updatingJobId,
     triggeringJobId,
+    deletingJobId,
   } = useJobs();
 
   // Fetch job details
@@ -420,9 +422,23 @@ export const JobDetailsPage: React.FC = () => {
                   Edit
                 </Button>
 
-                <Button danger icon={<DeleteOutlined />} onClick={handleDelete}>
-                  Delete
-                </Button>
+                <Popconfirm
+                  title="Delete Job"
+                  description="Are you sure you want to delete this job? This action cannot be undone."
+                  onConfirm={handleDelete}
+                  okText="Yes"
+                  cancelText="No"
+                  placement="bottomLeft"
+                  okButtonProps={{ danger: true }}
+                >
+                  <Button
+                    danger
+                    icon={<DeleteOutlined />}
+                    loading={deletingJobId === job.id}
+                  >
+                    Delete
+                  </Button>
+                </Popconfirm>
               </Space>
             </div>
           </div>
