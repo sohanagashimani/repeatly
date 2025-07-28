@@ -43,8 +43,10 @@ export const defaultQueueOptions: QueueOptions = {
 export const defaultWorkerOptions: WorkerOptions = {
   connection: sharedRedisConnection,
   concurrency: 1,
+  drainDelay: 60000,
   stalledInterval: 100000,
   maxStalledCount: 0,
+  skipStalledCheck: true,
   limiter: {
     max: 1,
     duration: 10000,
