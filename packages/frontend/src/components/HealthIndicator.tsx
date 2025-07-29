@@ -26,7 +26,7 @@ export function HealthIndicator() {
       const data: HealthResponse = await apiHelper({
         slug: "health",
         method: "GET",
-        url: `${import.meta.env.VITE_API_BASE_URL}/api/health`,
+        url: `${import.meta.env.VITE_API_BASE_URL ?? ""}/api/health`,
       });
 
       setHealthStatus(data.status === "healthy" ? "healthy" : "unhealthy");
