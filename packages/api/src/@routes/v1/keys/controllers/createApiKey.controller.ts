@@ -1,12 +1,10 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@repeatly/database";
 import { apiKeysService, getProjectId } from "../../../../lib/googleAuth";
 import {
   API_KEY_LIMITS,
   API_KEY_MESSAGES,
 } from "../../../../constants/apiKeys";
-
-const prisma = new PrismaClient();
 
 export const createApiKey = async (
   req: Request,

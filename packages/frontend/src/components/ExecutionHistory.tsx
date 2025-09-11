@@ -469,8 +469,6 @@ export const ExecutionHistory: React.FC<ExecutionHistoryProps> = ({
           </Text>
         </div>
       ),
-      sorter: true,
-      defaultSortOrder: "descend" as const,
     },
     {
       title: "Duration",

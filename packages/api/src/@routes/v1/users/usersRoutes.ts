@@ -5,9 +5,7 @@ import {
   authMiddlewareForUserCreation,
   authMiddleware,
 } from "../../../@middlewares/auth";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@repeatly/database";
 
 const router = Router();
 

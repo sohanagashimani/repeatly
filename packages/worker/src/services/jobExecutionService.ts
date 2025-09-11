@@ -1,5 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-import { createJobExecutionData } from "@repeatly/database";
+import { createJobExecutionData, PrismaClient } from "@repeatly/database";
 
 export interface JobExecutionResult {
   success: boolean;

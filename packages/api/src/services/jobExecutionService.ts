@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@repeatly/database";
 
 export interface ExecutionHistoryItem {
   id: string;

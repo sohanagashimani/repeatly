@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "@repeatly/database";
 import { apiKeysService } from "../../../../lib/googleAuth";
 
 const prisma = new PrismaClient();
