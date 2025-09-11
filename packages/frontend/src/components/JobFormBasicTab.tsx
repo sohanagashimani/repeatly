@@ -15,8 +15,8 @@ interface JobFormBasicTabProps {
 }
 
 const cronPresets = [
-  { label: "Every minute", value: "* * * * *" },
   { label: "Every 5 minutes", value: "*/5 * * * *" },
+  { label: "Every 10 minutes", value: "*/10 * * * *" },
   { label: "Every hour", value: "0 * * * *" },
   { label: "Every day at midnight", value: "0 0 * * *" },
   { label: "Every Sunday at midnight", value: "0 0 * * 0" },

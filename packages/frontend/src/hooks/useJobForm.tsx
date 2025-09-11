@@ -6,14 +6,63 @@ import * as yup from "yup";
 import { CreateJobData, Job } from "./useJobs";
 import { isValidCron } from "cron-validator";
 
-// Form data interface (what the form handles)
+const hasMinimumInterval = (cronExpression: string): boolean => {
+  if (!cronExpression) return false;
+
+  const parts = cronExpression.trim().split(/\s+/);
+  if (parts.length !== 5) return false;
+
+  const [minute, hour, day, month, weekday] = parts;
+
+  if (minute === "*") return false;
+
+  if (minute.startsWith("*/")) {
+    const step = parseInt(minute.substring(2));
+    return step >= 5;
+  }
+
+  if (hour !== "*" || day !== "*" || month !== "*" || weekday !== "*") {
+    return true;
+  }
+
+  if (minute.includes(",")) {
+    const values = minute
+      .split(",")
+      .map(v => parseInt(v.trim()))
+      .sort((a, b) => a - b);
+    let minInterval = 60;
+
+    for (let i = 1; i < values.length; i++) {
+      const interval = values[i] - values[i - 1];
+      minInterval = Math.min(minInterval, interval);
+    }
+
+    if (values.length > 1) {
+      const wrapInterval = 60 - values[values.length - 1] + values[0];
+      minInterval = Math.min(minInterval, wrapInterval);
+    }
+
+    return minInterval >= 5;
+  }
+
+  if (minute.includes("-")) {
+    return hour !== "*" || day !== "*" || month !== "*" || weekday !== "*";
+  }
+
+  if (/^\d+$/.test(minute)) {
+    return true;
+  }
+
+  return false;
+};
+
 interface JobFormData {
   name: string;
   cron: string;
   url: string;
   method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  headers?: string; // JSON string input by user
-  body?: string; // JSON string input by user
+  headers?: string;
+  body?: string;
   timezone?: string;
   enabled?: boolean;
 }
@@ -30,6 +79,10 @@ const jobSchema: yup.ObjectSchema<JobFormData> = yup.object({
     .test("is-valid-cron", "Invalid cron expression", value => {
       if (!value) return false;
       return isValidCron(value);
+    })
+    .test("min-interval", "Minimum interval is 5 minutes", value => {
+      if (!value) return false;
+      return hasMinimumInterval(value);
     }),
   url: yup.string().required("URL is required").url("Must be a valid URL"),
   method: yup
@@ -43,7 +96,7 @@ const jobSchema: yup.ObjectSchema<JobFormData> = yup.object({
     .string()
     .optional()
     .test("valid-json", "Headers must be valid JSON", value => {
-      if (!value || !value.trim()) return true; // Empty is valid
+      if (!value || !value.trim()) return true;
       try {
         const parsed = JSON.parse(value);
         return (
@@ -59,7 +112,7 @@ const jobSchema: yup.ObjectSchema<JobFormData> = yup.object({
     .string()
     .optional()
     .test("valid-json", "Body must be valid JSON", value => {
-      if (!value || !value.trim()) return true; // Empty is valid
+      if (!value || !value.trim()) return true;
       try {
         JSON.parse(value);
         return true;
@@ -92,7 +145,6 @@ export const useJobForm = (
     defaultValues: getDefaultValues(job),
   });
 
-  // Update form values when job prop changes
   useEffect(() => {
     const defaultValues = getDefaultValues(job);
     form.reset(defaultValues);
@@ -103,12 +155,10 @@ export const useJobForm = (
     let parsedBody = undefined;
 
     try {
-      // Handle headers - only parse if it's a non-empty string
       if (formData.headers && formData.headers.trim()) {
         parsedHeaders = JSON.parse(formData.headers.trim());
       }
 
-      // Handle body - only parse if it's a non-empty string
       if (formData.body && formData.body.trim()) {
         parsedBody = JSON.parse(formData.body.trim());
       }
@@ -140,6 +190,7 @@ export const useJobForm = (
       await onSubmit(jobData);
     } catch (error) {
       // Error already handled in parseFormData
+      throw error;
     }
   };
 

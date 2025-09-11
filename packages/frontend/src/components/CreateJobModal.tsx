@@ -12,7 +12,7 @@ const { Text } = Typography;
 interface JobModalProps {
   visible: boolean;
   loading: boolean;
-  job?: Job | null; // For edit mode
+  job?: Job | null;
   onClose: () => void;
   onSubmit: (data: CreateJobData) => Promise<boolean>;
 }
@@ -27,7 +27,6 @@ export const JobModal: React.FC<JobModalProps> = ({
   const isEditMode = !!job;
   const [activeTab, setActiveTab] = useState("basic");
 
-  // Form logic hook
   const form = useJobForm(job, async (data: CreateJobData) => {
     const success = await onSubmit(data);
     if (success) {
