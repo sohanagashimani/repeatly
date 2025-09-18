@@ -30,8 +30,8 @@ export interface JobQueueData {
 export const defaultQueueOptions: QueueOptions = {
   connection: sharedRedisConnection,
   defaultJobOptions: {
-    removeOnComplete: true,
-    removeOnFail: true,
+    removeOnComplete: 5, // Keep only 5 completed jobs
+    removeOnFail: 3, // Keep only 3 failed jobs
     attempts: 1,
     backoff: {
       type: "exponential",
@@ -43,8 +43,8 @@ export const defaultQueueOptions: QueueOptions = {
 export const defaultWorkerOptions: WorkerOptions = {
   connection: sharedRedisConnection,
   concurrency: 1,
-  drainDelay: 60000,
-  stalledInterval: 100000,
+  drainDelay: 30000, // Shorter drain delay
+  stalledInterval: 60000, // Shorter stalled interval
   maxStalledCount: 0,
   skipStalledCheck: true,
   limiter: {
@@ -52,10 +52,10 @@ export const defaultWorkerOptions: WorkerOptions = {
     duration: 10000,
   },
   removeOnFail: {
-    count: 0,
+    count: 3, // Keep only 3 failed jobs
   },
   removeOnComplete: {
-    count: 0,
+    count: 5, // Keep only 5 completed jobs
   },
 };
 

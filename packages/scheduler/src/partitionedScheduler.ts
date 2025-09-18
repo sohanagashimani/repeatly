@@ -19,11 +19,14 @@ export class PartitionedScheduler {
   private isShuttingDown = false;
   private isRunning = false;
   private isProcessing = false;
+  private redisErrorCount = 0;
+  private lastRedisError = 0;
+  private circuitBreakerOpen = false;
 
   private config: PartitionedSchedulerConfig = {
-    pollingIntervalMs: 2 * 60 * 1000, // 2 minutes
-    batchSize: 50,
-    maxJobsPerCycle: 200,
+    pollingIntervalMs: 5 * 60 * 1000, // 5 minutes (reduced frequency)
+    batchSize: 10, // Smaller batches
+    maxJobsPerCycle: 20, // Much smaller cycles
     stuckJobTimeoutMinutes: 30,
     overdueJobTimeoutMinutes: 5,
   };
@@ -82,6 +85,16 @@ export class PartitionedScheduler {
     const currentHour = getPartitionHour(currentTime);
 
     console.log(`🔄 Processing cycle started for hour ${currentHour}`);
+
+    // Reset circuit breaker if enough time has passed
+    if (
+      this.circuitBreakerOpen &&
+      Date.now() - this.lastRedisError > 10 * 60 * 1000
+    ) {
+      console.log("🔄 Attempting to reset circuit breaker");
+      this.circuitBreakerOpen = false;
+      this.redisErrorCount = 0;
+    }
 
     try {
       const metrics = await this.getMetrics();
@@ -207,6 +220,23 @@ export class PartitionedScheduler {
   }
 
   private async enqueueJob(job: QueueableJob): Promise<void> {
+    // Circuit breaker: if Redis has been failing, skip queuing
+    if (this.circuitBreakerOpen) {
+      console.log(
+        `⚠️  Circuit breaker open, marking job ${job.jobId} as failed`
+      );
+      try {
+        await this.jobQueueService.markJobAsFailed(
+          job.scheduledJobId,
+          job.scheduledJobHour,
+          "Redis circuit breaker open"
+        );
+      } catch (dbError) {
+        console.error("Failed to mark job as failed in DB:", dbError);
+      }
+      return;
+    }
+
     try {
       const queue = getJobsQueue();
 
@@ -222,26 +252,51 @@ export class PartitionedScheduler {
           type: job.type,
         },
         {
-          attempts: 3,
+          attempts: 1, // Reduce retries to save memory
           backoff: {
             type: "exponential",
             delay: 2000,
           },
-          removeOnComplete: 100,
-
-          removeOnFail: 50,
+          removeOnComplete: 10, // Keep fewer completed jobs
+          removeOnFail: 5, // Keep fewer failed jobs
           delay: Math.max(0, job.scheduledAt.getTime() - Date.now()),
         }
       );
+
+      // Reset error count on success
+      this.redisErrorCount = 0;
+      this.circuitBreakerOpen = false;
 
       console.log(
         `✅ Queued job ${job.jobId} (scheduled: ${job.scheduledJobId}) for ${job.scheduledAt.toISOString()}`
       );
     } catch (error) {
+      this.redisErrorCount++;
+      this.lastRedisError = Date.now();
+
+      // Open circuit breaker after 3 consecutive errors
+      if (this.redisErrorCount >= 3) {
+        this.circuitBreakerOpen = true;
+        console.error(
+          `🚨 Circuit breaker opened after ${this.redisErrorCount} Redis errors`
+        );
+      }
+
       console.error(
         `❌ Failed to enqueue job ${job.jobId} (scheduled: ${job.scheduledJobId}):`,
         error
       );
+
+      // Mark job as failed in DB if Redis fails
+      try {
+        await this.jobQueueService.markJobAsFailed(
+          job.scheduledJobId,
+          job.scheduledJobHour,
+          "Redis queue full"
+        );
+      } catch (dbError) {
+        console.error("Failed to mark job as failed in DB:", dbError);
+      }
     }
   }
 

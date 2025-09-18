@@ -335,4 +335,24 @@ export class JobQueueService {
 
     return totalDeleted;
   }
+
+  async markJobAsFailed(
+    scheduledJobId: string,
+    scheduledJobHour: number,
+    errorMessage: string
+  ): Promise<void> {
+    await this.prisma.scheduledJob.updateMany({
+      where: {
+        id: scheduledJobId,
+        scheduledHour: scheduledJobHour,
+      },
+      data: {
+        status: "failed",
+        jobData: {
+          lastError: errorMessage,
+          failedAt: new Date().toISOString(),
+        },
+      },
+    });
+  }
 }

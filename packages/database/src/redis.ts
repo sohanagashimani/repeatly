@@ -6,5 +6,26 @@ if (!process.env.REDIS_URL) {
 
 export const redisConfig = process.env.REDIS_URL;
 export const sharedRedisConnection = new IORedis(redisConfig, {
-  maxRetriesPerRequest: null,
+  maxRetriesPerRequest: 3, // Limit retries to prevent memory buildup
+  enableReadyCheck: false,
+  lazyConnect: true,
+  keepAlive: 30000,
+  connectTimeout: 10000,
+  commandTimeout: 5000,
+});
+
+// Add error handling
+sharedRedisConnection.on("error", err => {
+  // eslint-disable-next-line no-console
+  console.error("Redis connection error:", err.message);
+});
+
+sharedRedisConnection.on("connect", () => {
+  // eslint-disable-next-line no-console
+  console.log("Redis connected successfully");
+});
+
+sharedRedisConnection.on("ready", () => {
+  // eslint-disable-next-line no-console
+  console.log("Redis ready for operations");
 });
