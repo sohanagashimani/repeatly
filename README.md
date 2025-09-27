@@ -9,35 +9,36 @@
 ```mermaid
 graph TB
     %% User Layer
-    USER["👤 User"] --> FRONTEND["🎨 React Frontend<br/>Job Management & Monitoring"]
+    USER["User"] --> FRONTEND["React Frontend<br/>Job Management & Monitoring"]
 
     %% Authentication
-    FRONTEND --> AUTH["🔐 Firebase Auth<br/>JWT Tokens"]
+    FRONTEND --> AUTH["Firebase Auth<br/>JWT Tokens"]
 
     %% Core Services
-    FRONTEND --> API["⚡ API Server<br/>Express.js<br/>• Job CRUD<br/>• Authentication"]
+    FRONTEND --> API["API Server<br/>Express.js<br/>• Job CRUD<br/>• Authentication"]
 
-    API --> DB["📊 PostgreSQL<br/>• Jobs & Users<br/>• Execution History"]
-    API --> REDIS["🔴 Redis<br/>Job Queue"]
+    API --> DB["PostgreSQL<br/>• Jobs & Users<br/>• Execution History"]
+    API --> REDIS["Redis<br/>Job Queue (Bull MQ)"]
 
     %% Background Services
-    SCHEDULER["🕐 Scheduler<br/>Finds due jobs<br/>every 60s"] --> REDIS
+    SCHEDULER["Scheduler<br/>Finds due jobs<br/>every 60s"] --> REDIS
     SCHEDULER --> DB
 
-    REDIS --> WORKER["🚀 Worker<br/>Executes HTTP requests"]
-    WORKER --> TARGET["🌍 Target APIs<br/>HTTP endpoints"]
+    REDIS --> WORKER["Worker<br/>Executes HTTP requests"]
+    WORKER --> TARGET["Target APIs<br/>HTTP endpoints"]
     WORKER --> DB
 
     %% Styling
-    classDef userLayer fill:#e1f5fe
-    classDef coreService fill:#f3e5f5
-    classDef storage fill:#fff3e0
-    classDef external fill:#e8f5e8
+    classDef userLayer fill:#90caf9,stroke:#0d47a1,stroke-width:2px,color:#000
+    classDef coreService fill:#b39ddb,stroke:#4a148c,stroke-width:2px,color:#000
+    classDef storage fill:#ffcc80,stroke:#e65100,stroke-width:2px,color:#000
+    classDef external fill:#81c784,stroke:#1b5e20,stroke-width:2px,color:#000
 
     class USER,FRONTEND userLayer
     class API,SCHEDULER,WORKER,AUTH coreService
     class DB,REDIS storage
     class TARGET external
+
 ```
 
 ---
