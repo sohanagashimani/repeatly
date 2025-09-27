@@ -8,70 +8,36 @@
 
 ```mermaid
 graph TB
-    %% User and Frontend Layer
-    subgraph "User Interface Layer"
-        USER["👤 User<br/>Multi-timezone<br/>Dashboard"]
-        FRONTEND["🎨 React Frontend<br/>• Job Management<br/>• Execution Tracking<br/>• Timezone Toggle<br/>• API Key Management<br/>Deployed: Firebase Hosting"]
-    end
+    %% User Layer
+    USER["👤 User"] --> FRONTEND["🎨 React Frontend<br/>Job Management & Monitoring"]
 
-    %% Authentication & Gateway Layer
-    subgraph "Authentication & Gateway"
-        FIREBASE["🔐 Firebase Auth<br/>• JWT Tokens<br/>• User Management<br/>• OAuth Integration"]
-        GATEWAY["🌐 Google Cloud<br/>API Gateway<br/>• Rate Limiting<br/>• JWT Validation<br/>• Request Routing<br/>• Cron Management (WIP)"]
-    end
+    %% Authentication
+    FRONTEND --> AUTH["🔐 Firebase Auth<br/>JWT Tokens"]
 
-    %% Core Services Layer
-    subgraph "Core Services - Cloud Run"
-        API["⚡ Express API<br/>packages/api<br/>• Job CRUD<br/>• JobSchedulingService<br/>• Validation & Auth<br/>Deployed: Cloud Run"]
-        SCHEDULER["🕐 Partition Scheduler<br/>packages/scheduler<br/>• 60s Polling Cycle<br/>• Partition Pruning<br/>• Atomic Job Claiming<br/>• Batch Processing<br/>Deployed: Cloud Run"]
-        WORKER["🚀 Smart Worker<br/>packages/worker<br/>• HTTP Execution<br/>• Response Sanitization<br/>• JobExecutionService<br/>• Metadata Storage<br/>• Schedules Next Runs<br/>Deployed: Cloud Run"]
-    end
+    %% Core Services
+    FRONTEND --> API["⚡ API Server<br/>Express.js<br/>• Job CRUD<br/>• Authentication"]
 
-    %% Database Layer with Partitioning
-    subgraph "Database Layer - PostgreSQL"
-        MAINDB["📊 Main Tables<br/>• Job<br/>• User<br/>• ApiKey"]
+    API --> DB["📊 PostgreSQL<br/>• Jobs & Users<br/>• Execution History"]
+    API --> REDIS["🔴 Redis<br/>Job Queue"]
 
-        subgraph "Hourly Partitioned Tables"
-            PART00["⏰ scheduled_jobs_00<br/>Hour 0: 00:00-00:59"]
-            PART01["⏰ scheduled_jobs_01<br/>Hour 1: 01:00-01:59"]
-            PART02["⏰ scheduled_jobs_02<br/>Hour 2: 02:00-02:59"]
-            PARTDOTS["⋮<br/>..."]
-            PART23["⏰ scheduled_jobs_23<br/>Hour 23: 23:00-23:59"]
-        end
+    %% Background Services
+    SCHEDULER["🕐 Scheduler<br/>Finds due jobs<br/>every 60s"] --> REDIS
+    SCHEDULER --> DB
 
-        EXECDB["📈 Job Executions<br/>• Execution History<br/>• Performance Metrics<br/>• Sanitized Responses"]
-    end
+    REDIS --> WORKER["🚀 Worker<br/>Executes HTTP requests"]
+    WORKER --> TARGET["🌍 Target APIs<br/>HTTP endpoints"]
+    WORKER --> DB
 
-    %% External Systems
-    subgraph "External Systems"
-        EXT["🌍 Target APIs<br/>• HTTP/HTTPS endpoints<br/>• Webhooks<br/>• REST APIs"]
-    end
+    %% Styling
+    classDef userLayer fill:#e1f5fe
+    classDef coreService fill:#f3e5f5
+    classDef storage fill:#fff3e0
+    classDef external fill:#e8f5e8
 
-    %% Data Flow
-    USER --> FRONTEND
-    FRONTEND --> GATEWAY
-    GATEWAY --> API
-    API --> MAINDB
-    API --> SCHEDULER
-    SCHEDULER --> PART00
-    SCHEDULER --> PART01
-    SCHEDULER --> PART02
-    SCHEDULER --> PARTDOTS
-    SCHEDULER --> PART23
-    SCHEDULER --> WORKER
-    WORKER --> EXECDB
-    WORKER --> EXT
-    EXT --> WORKER
-    WORKER --> PART00
-    WORKER --> PART01
-    WORKER --> PART02
-    WORKER --> PARTDOTS
-    WORKER --> PART23
-    WORKER -- "Schedules Next Runs, Updates Status" --> PART00
-    WORKER -- "Schedules Next Runs, Updates Status" --> PART01
-    WORKER -- "Schedules Next Runs, Updates Status" --> PART02
-    WORKER -- "Schedules Next Runs, Updates Status" --> PARTDOTS
-    WORKER -- "Schedules Next Runs, Updates Status" --> PART23
+    class USER,FRONTEND userLayer
+    class API,SCHEDULER,WORKER,AUTH coreService
+    class DB,REDIS storage
+    class TARGET external
 ```
 
 ---
