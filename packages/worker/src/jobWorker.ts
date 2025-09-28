@@ -294,53 +294,38 @@ export class JobWorker {
               return;
             }
 
-            const N = 5;
+            const baseTime = queueData.scheduledAt ?? new Date();
+            const nextRun = getNextRunTime(
+              queueData.jobData.cron,
+              queueData.jobData.timezone,
+              baseTime
+            );
 
-            const futureJobs = await tx.scheduledJob.findMany({
+            const exists = await tx.scheduledJob.findFirst({
               where: {
                 jobId: queueData.jobId,
-                scheduledAt: { gt: new Date() },
-                status: "pending",
+                scheduledAt: nextRun,
+                scheduledHour: getPartitionHour(nextRun),
               },
-              orderBy: { scheduledAt: "asc" },
             });
 
-            let lastScheduled = futureJobs.length
-              ? futureJobs[futureJobs.length - 1].scheduledAt
-              : new Date();
-
-            for (let i = futureJobs.length; i < N; i++) {
-              lastScheduled = getNextRunTime(
-                queueData.jobData.cron,
-                queueData.jobData.timezone,
-                lastScheduled
+            if (!exists) {
+              console.log(
+                "Scheduling next run for jobId:",
+                queueData.jobId,
+                "nextRun:",
+                dayjs(nextRun).utc().format("YYYY-MM-DD HH:mm:ss")
               );
-
-              const exists = await tx.scheduledJob.findFirst({
-                where: {
+              await tx.scheduledJob.create({
+                data: {
                   jobId: queueData.jobId,
-                  scheduledAt: lastScheduled,
-                  scheduledHour: getPartitionHour(lastScheduled),
+                  scheduledAt: nextRun,
+                  scheduledHour: getPartitionHour(nextRun),
+                  jobData: queueData.jobData,
+                  status: "pending",
+                  type: "scheduled",
                 },
               });
-              if (!exists) {
-                console.log(
-                  "Scheduling next run for jobId:",
-                  queueData.jobId,
-                  "nextRun:",
-                  dayjs(lastScheduled).utc().format("YYYY-MM-DD HH:mm:ss")
-                );
-                await tx.scheduledJob.create({
-                  data: {
-                    jobId: queueData.jobId,
-                    scheduledAt: lastScheduled,
-                    scheduledHour: getPartitionHour(lastScheduled),
-                    jobData: queueData.jobData,
-                    status: "pending",
-                    type: "scheduled",
-                  },
-                });
-              }
             }
           }
         },

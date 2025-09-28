@@ -8,10 +8,9 @@ export const redisConfig = process.env.REDIS_URL;
 export const sharedRedisConnection = new IORedis(redisConfig, {
   maxRetriesPerRequest: 3, // Limit retries to prevent memory buildup
   enableReadyCheck: false,
-  lazyConnect: true,
-  keepAlive: 30000,
-  connectTimeout: 10000,
-  commandTimeout: 5000,
+  connectTimeout: 10000, // 10 seconds
+  commandTimeout: 5000, // 5 seconds
+  lazyConnect: true, // Don't connect immediately
 });
 
 // Add error handling

@@ -43,8 +43,8 @@ export const defaultQueueOptions: QueueOptions = {
 export const defaultWorkerOptions: WorkerOptions = {
   connection: sharedRedisConnection,
   concurrency: 1,
-  drainDelay: 30000, // Shorter drain delay
-  stalledInterval: 60000, // Shorter stalled interval
+  drainDelay: 90000,
+  stalledInterval: 100000,
   maxStalledCount: 0,
   skipStalledCheck: true,
   limiter: {
@@ -52,10 +52,10 @@ export const defaultWorkerOptions: WorkerOptions = {
     duration: 10000,
   },
   removeOnFail: {
-    count: 3, // Keep only 3 failed jobs
+    count: 0,
   },
   removeOnComplete: {
-    count: 5, // Keep only 5 completed jobs
+    count: 0,
   },
 };
 

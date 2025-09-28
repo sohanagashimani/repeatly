@@ -24,7 +24,7 @@ export class PartitionedScheduler {
   private circuitBreakerOpen = false;
 
   private config: PartitionedSchedulerConfig = {
-    pollingIntervalMs: 5 * 60 * 1000, // 5 minutes (reduced frequency)
+    pollingIntervalMs: 2 * 60 * 1000, // 5 minutes (reduced frequency)
     batchSize: 10, // Smaller batches
     maxJobsPerCycle: 20, // Much smaller cycles
     stuckJobTimeoutMinutes: 30,
