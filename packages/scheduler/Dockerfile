@@ -2,6 +2,9 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 
+# Copy .nvmrc to determine Node version
+COPY .nvmrc ./
+
 # Copy package.json files for workspace setup
 COPY package*.json turbo.json ./
 COPY packages/database/package*.json ./packages/database/
@@ -12,13 +15,10 @@ COPY packages/database/ ./packages/database/
 COPY packages/scheduler/ ./packages/scheduler/
 
 # Install dependencies
-RUN npm install
+RUN npm ci --only=production=false
 
-# Build database package first
-RUN cd packages/database && npm run build
-
-# Build scheduler package
-RUN cd packages/scheduler && npm run build
+# Build all packages using Turbo (handles dependencies automatically)
+RUN npx turbo run build --filter=@repeatly/scheduler
 
 # Verify the build output exists
 RUN ls -la packages/scheduler/dist/ || echo "Build failed - dist folder not found"
@@ -33,20 +33,15 @@ COPY package*.json ./
 COPY packages/database/package*.json ./packages/database/
 COPY packages/scheduler/package*.json ./packages/scheduler/
 
-# Copy database source files needed for postinstall script
+# Copy only the Prisma schema (needed for Prisma client generation)
 COPY --from=builder /app/packages/database/prisma ./packages/database/prisma
-COPY --from=builder /app/packages/database/src ./packages/database/src
-COPY --from=builder /app/packages/database/tsconfig.json ./packages/database/tsconfig.json
 
 # Install production dependencies (skip postinstall since we already have built artifacts)
-RUN npm install --omit=dev --ignore-scripts
+RUN npm ci --omit=dev --ignore-scripts
 
-# Copy built artifacts
+# Copy built artifacts (Prisma client is already generated in the build stage)
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/packages/scheduler/dist ./packages/scheduler/dist
-
-# Generate Prisma client in production stage (needed for runtime)
-RUN cd packages/database && npx prisma generate
 
 # Verify the files exist in production stage
 RUN ls -la packages/scheduler/dist/ || echo "Production: dist folder not found"
