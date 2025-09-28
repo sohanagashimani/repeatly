@@ -42,9 +42,12 @@ COPY --from=builder /app/packages/database/prisma ./packages/database/prisma
 # Install production dependencies (skip postinstall since we already have built artifacts)
 RUN npm ci --omit=dev --ignore-scripts
 
-# Copy built artifacts (Prisma client is already generated in the build stage)
+# Copy built artifacts
 COPY --from=builder /app/packages/database/dist ./packages/database/dist
 COPY --from=builder /app/packages/api/dist ./packages/api/dist
+
+# Generate Prisma client in production stage (needed for runtime)
+RUN cd packages/database && npx prisma generate
 
 # Verify the files exist in production stage
 RUN ls -la packages/api/dist/ || echo "Production: dist folder not found"
